@@ -10,7 +10,8 @@ Responsive mobile-first (max-width 448px). Thème sombre.
 - **Icônes** : lucide-react
 - **Graphiques** : Recharts
 - **Base de données** : Firebase Firestore (temps réel)
-- **Hébergement prévu** : Vercel (gratuit)
+- **Hébergement** : Vercel — https://poker-team78.vercel.app
+- **GitHub** : https://github.com/Tibo37300/poker-team78
 
 ## Lancer le projet en local
 ```bash
@@ -29,9 +30,9 @@ src/
     useStore.jsx                   # Store central : Firestore + logique métier
     useStore.backup.jsx            # Sauvegarde de l'ancienne version localStorage
   components/
-    HomeView.jsx                   # Page d'accueil — liste des championnats
+    HomeView.jsx                   # Page d'accueil — liste des championnats + footer
     ChampionshipForm.jsx           # Formulaire création championnat
-    ChampionshipView.jsx           # Dashboard championnat (classement + parties)
+    ChampionshipView.jsx           # Dashboard championnat (classement + parties + cagnotte)
     GameForm.jsx                   # Formulaire création d'une partie
     GameDetailView.jsx             # Détail d'une partie
     PlayerDetailView.jsx           # Profil joueur + graphiques
@@ -39,7 +40,7 @@ src/
 ```
 
 ## Variables d'environnement
-Fichier `.env` à créer à la racine (ne jamais committer) :
+Fichier `.env` à la racine (ne jamais committer) — projet Firebase : pokerteam78-a1231
 ```
 VITE_FIREBASE_API_KEY=...
 VITE_FIREBASE_AUTH_DOMAIN=...
@@ -48,12 +49,12 @@ VITE_FIREBASE_STORAGE_BUCKET=...
 VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 ```
-Voir `.env.example` pour le modèle.
 
 ## Structure Firestore
 ```
 /championships/{champId}
     name, totalGames, entryFee, rebuyFee, prizePoolPerPlayer
+    cagnottePercent1, cagnottePercent2, cagnottePercent3
     adminPassword, players[], createdAt
 
 /championships/{champId}/games/{gameId}
@@ -69,11 +70,27 @@ Voir `.env.example` pour le modèle.
 - Les joueurs sont **pré-inscrits au championnat** (liste définie à la création)
 - À chaque partie, on peut marquer un joueur comme **Absent** (ne compte pas dans cette partie)
 
+## Règles de classement championnat
+1. **Seules les 11 meilleures parties** sont retenues par joueur (sur 13 max)
+2. **Bonus kills conservés** même si la partie est éliminée du total
+3. **Départage à égalité** : victoires → podiums → total kills sur l'année
+
+## Onglet Cagnotte
+- Cagnotte par partie = `prizePoolPerPlayer × nb joueurs présents`
+- Cagnotte totale = cumul de toutes les parties validées
+- Répartition définie à la création : `cagnottePercent1/2/3` (doit totaliser 100%)
+- Affichage : courbe évolution + montants promis au top 3 du classement actuel
+
 ## Système d'authentification admin
 - Mot de passe défini à la création du championnat (stocké en clair dans Firestore)
 - Session admin stockée dans `sessionStorage` avec la clé `admin_champ_{id}`
 - Actions protégées : créer une partie, valider une partie, supprimer une partie
 - Les autres utilisateurs ont accès en **lecture seule**
+
+## Firebase
+- Projet : **PokerTeam78** (pokerteam78-a1231)
+- Région Firestore : eur3 (europe-west)
+- Règles : lecture/écriture ouvertes sans expiration (sécurité gérée par mot de passe admin dans l'app)
 
 ## État d'avancement
 - [x] Création de championnat avec joueurs inscrits et mot de passe admin
@@ -83,17 +100,16 @@ Voir `.env.example` pour le modèle.
 - [x] Dashboard classement avec tableau et clic sur joueur
 - [x] Détail joueur : stats + graphiques (points cumulés / gains)
 - [x] Migration localStorage → Firebase Firestore
-- [ ] Déploiement Vercel (en cours — fichier .env à configurer)
-- [ ] Règles de sécurité Firestore à durcir après tests (actuellement en mode test)
-
-## Prochaines étapes prévues
-1. L'utilisateur doit créer son projet Firebase et renseigner le fichier `.env`
-2. Tester l'app en local avec Firebase
-3. Déployer sur Vercel en ajoutant les variables d'env dans l'interface Vercel
-4. Optionnel : durcir les règles Firestore (read: public, write: restreint)
+- [x] Déploiement Vercel (https://poker-team78.vercel.app)
+- [x] Règles Firestore permanentes (sans expiration)
+- [x] Règles classement : 11 meilleures parties, bonus kills conservés, départage
+- [x] Onglet Cagnotte : courbe évolution + répartition top 3
+- [x] Titre page : "Poker League Management"
+- [x] Footer © 2026 Team78 by Thibaut MAS
 
 ## Décisions de conception
 - Pas de système d'authentification Firebase Auth → mot de passe simple géré dans l'app
 - Les données sont partagées en temps réel via Firestore `onSnapshot`
 - L'interface est pensée mobile-first mais fonctionne aussi sur desktop
 - Pas de backend custom (serverless Firestore suffit)
+- Pour mettre à jour l'app en prod : `git add`, `git commit`, `git push origin main` → Vercel redéploie automatiquement

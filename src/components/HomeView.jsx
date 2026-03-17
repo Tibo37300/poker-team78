@@ -91,6 +91,10 @@ export default function HomeView() {
           </div>
         </div>
       )}
+      {/* Footer */}
+      <p className="text-center text-gray-600 text-xs mt-10 pb-4">
+        © 2026 Team78 by Thibaut MAS. Tous droits réservés.
+      </p>
     </div>
   );
 }

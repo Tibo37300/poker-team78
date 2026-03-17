@@ -3,8 +3,9 @@ import { useStore } from '../store/useStore';
 import PasswordModal from './PasswordModal';
 import {
   ArrowLeft, Plus, Trophy, CheckCircle, Clock, ChevronRight,
-  Users, TrendingUp, TrendingDown, Minus, Trash2, Lock, Unlock
+  Users, TrendingUp, TrendingDown, Minus, Trash2, Lock, Unlock, DollarSign
 } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // Session storage key for admin auth per championship
 const adminKey = (id) => `admin_champ_${id}`;
@@ -173,6 +174,15 @@ export default function ChampionshipView() {
           <Users className="w-4 h-4" />
           Parties ({champ.games.length})
         </button>
+        <button
+          onClick={() => setTab('cagnotte')}
+          className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            tab === 'cagnotte' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-gray-400'
+          }`}
+        >
+          <DollarSign className="w-4 h-4" />
+          Cagnotte
+        </button>
       </div>
 
       <div className="p-4">
@@ -202,6 +212,11 @@ export default function ChampionshipView() {
               </div>
             )}
           </div>
+        )}
+
+        {/* CAGNOTTE TAB */}
+        {tab === 'cagnotte' && (
+          <CagnotteTab champ={champ} standings={standings} validatedGames={validatedGames} />
         )}
 
         {/* GAMES TAB */}
@@ -273,6 +288,95 @@ function PlayerRow({ player, rank, onClick }) {
         </div>
       </div>
       <ChevronRight className="w-4 h-4 text-gray-600 flex-shrink-0" />
+    </div>
+  );
+}
+
+function CagnotteTab({ champ, standings, validatedGames }) {
+  const prizePerPlayer = champ.prizePoolPerPlayer || 0;
+  const p1 = champ.cagnottePercent1 ?? 60;
+  const p2 = champ.cagnottePercent2 ?? 30;
+  const p3 = champ.cagnottePercent3 ?? 10;
+
+  // Build cumulative chart data (sorted by date)
+  const sorted = [...validatedGames].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const chartData = [{ name: 'Début', cagnotte: 0 }];
+  let cumulative = 0;
+  sorted.forEach((game, idx) => {
+    cumulative += game.players.length * prizePerPlayer;
+    chartData.push({ name: `P${idx + 1}`, cagnotte: cumulative });
+  });
+  const totalCagnotte = cumulative;
+
+  const medals = ['🥇', '🥈', '🥉'];
+  const percents = [p1, p2, p3];
+  const top3 = standings.slice(0, 3);
+
+  return (
+    <div className="space-y-5">
+      {/* Total */}
+      <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-xl p-4 text-center">
+        <p className="text-xs text-yellow-400/70 uppercase tracking-wider mb-1">Cagnotte totale actuelle</p>
+        <p className="text-4xl font-bold text-yellow-400">{totalCagnotte} €</p>
+        <p className="text-xs text-gray-500 mt-1">{validatedGames.length} partie{validatedGames.length > 1 ? 's' : ''} · {prizePerPlayer}€/joueur/partie</p>
+      </div>
+
+      {/* Chart */}
+      <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl p-4">
+        <p className="text-xs text-gray-400 uppercase tracking-wider mb-4">Évolution de la cagnotte</p>
+        {chartData.length < 2 ? (
+          <p className="text-gray-600 text-sm text-center py-6">Aucune partie validée</p>
+        ) : (
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="cagnotteGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FBBF24" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#FBBF24" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+              <XAxis dataKey="name" tick={{ fill: '#9ca3af', fontSize: 11 }} />
+              <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} unit="€" />
+              <Tooltip
+                contentStyle={{ backgroundColor: '#1e2d3d', border: '1px solid #ffffff20', borderRadius: 8 }}
+                labelStyle={{ color: '#9ca3af' }}
+                formatter={(v) => [`${v} €`, 'Cagnotte']}
+              />
+              <Area type="monotone" dataKey="cagnotte" stroke="#FBBF24" strokeWidth={2} fill="url(#cagnotteGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Distribution top 3 */}
+      <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl p-4">
+        <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Gains cagnotte — Top 3 actuel</p>
+        {top3.length === 0 ? (
+          <p className="text-gray-600 text-sm text-center py-4">Aucun classement disponible</p>
+        ) : (
+          <div className="space-y-3">
+            {top3.map((player, idx) => {
+              const gain = Math.round(totalCagnotte * percents[idx] / 100);
+              return (
+                <div key={player.name} className="flex items-center gap-3">
+                  <span className="text-xl">{medals[idx]}</span>
+                  <div className="flex-1">
+                    <p className="text-white text-sm font-semibold">{player.name}</p>
+                    <p className="text-gray-500 text-xs">{percents[idx]}% de la cagnotte</p>
+                  </div>
+                  <p className="text-yellow-400 font-bold text-lg">{gain} €</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {top3.length > 0 && (
+          <p className="text-gray-600 text-xs text-center mt-4">
+            Répartition : {p1}% / {p2}% / {p3}%
+          </p>
+        )}
+      </div>
     </div>
   );
 }

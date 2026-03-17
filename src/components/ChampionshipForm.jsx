@@ -10,6 +10,9 @@ export default function ChampionshipForm() {
     entryFee: 10,
     rebuyFee: 10,
     prizePoolPerPlayer: 5,
+    cagnottePercent1: 60,
+    cagnottePercent2: 30,
+    cagnottePercent3: 10,
     adminPassword: '',
   });
   const [showPwd, setShowPwd] = useState(false);
@@ -31,6 +34,13 @@ export default function ChampionshipForm() {
     e.preventDefault();
     if (!form.name.trim()) return;
     if (!form.adminPassword.trim()) { alert('Veuillez définir un mot de passe administrateur'); return; }
+    const p1 = Number(form.cagnottePercent1);
+    const p2 = Number(form.cagnottePercent2);
+    const p3 = Number(form.cagnottePercent3);
+    if (p1 + p2 + p3 !== 100) {
+      alert(`La somme des pourcentages doit être égale à 100% (actuellement ${p1 + p2 + p3}%)`);
+      return;
+    }
     dispatch({
       type: 'CREATE_CHAMPIONSHIP',
       data: {
@@ -39,6 +49,9 @@ export default function ChampionshipForm() {
         entryFee: Number(form.entryFee),
         rebuyFee: Number(form.rebuyFee),
         prizePoolPerPlayer: Number(form.prizePoolPerPlayer),
+        cagnottePercent1: p1,
+        cagnottePercent2: p2,
+        cagnottePercent3: p3,
         players,
         adminPassword: form.adminPassword.trim(),
       },
@@ -198,6 +211,27 @@ export default function ChampionshipForm() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Cagnotte distribution */}
+        <div className="bg-[#1e2d3d]/80 rounded-xl p-4 border border-yellow-500/20">
+          <h3 className="text-sm font-semibold text-yellow-400 uppercase tracking-wider mb-1">
+            Répartition de la cagnotte
+          </h3>
+          <p className="text-gray-500 text-xs mb-4">
+            La somme des 3 pourcentages doit être égale à 100%
+          </p>
+          <div className="space-y-4">
+            <Field label="% cagnotte — 1er" value={form.cagnottePercent1} onChange={v => set('cagnottePercent1', v)} type="number" min={0} suffix="%" />
+            <Field label="% cagnotte — 2ème" value={form.cagnottePercent2} onChange={v => set('cagnottePercent2', v)} type="number" min={0} suffix="%" />
+            <Field label="% cagnotte — 3ème" value={form.cagnottePercent3} onChange={v => set('cagnottePercent3', v)} type="number" min={0} suffix="%" />
+          </div>
+          <div className={`mt-3 text-xs font-semibold text-right ${
+            Number(form.cagnottePercent1) + Number(form.cagnottePercent2) + Number(form.cagnottePercent3) === 100
+              ? 'text-green-400' : 'text-red-400'
+          }`}>
+            Total : {Number(form.cagnottePercent1) + Number(form.cagnottePercent2) + Number(form.cagnottePercent3)}%
+          </div>
         </div>
 
         {/* Points reminder */}

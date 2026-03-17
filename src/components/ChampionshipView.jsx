@@ -216,7 +216,7 @@ export default function ChampionshipView() {
 
         {/* CAGNOTTE TAB */}
         {tab === 'cagnotte' && (
-          <CagnotteTab champ={champ} standings={standings} validatedGames={validatedGames} />
+          <CagnotteTab champ={champ} standings={standings} validatedGames={validatedGames} requireAdmin={requireAdmin} dispatch={dispatch} />
         )}
 
         {/* GAMES TAB */}
@@ -292,8 +292,13 @@ function PlayerRow({ player, rank, onClick }) {
   );
 }
 
-function CagnotteTab({ champ, standings, validatedGames }) {
+function CagnotteTab({ champ, standings, validatedGames, requireAdmin, dispatch }) {
   const prizePerPlayer = champ.prizePoolPerPlayer || 0;
+  const [editing, setEditing] = useState(false);
+  const [ep1, setEp1] = useState(champ.cagnottePercent1 ?? 60);
+  const [ep2, setEp2] = useState(champ.cagnottePercent2 ?? 30);
+  const [ep3, setEp3] = useState(champ.cagnottePercent3 ?? 10);
+
   const p1 = champ.cagnottePercent1 ?? 60;
   const p2 = champ.cagnottePercent2 ?? 30;
   const p3 = champ.cagnottePercent3 ?? 10;
@@ -311,6 +316,29 @@ function CagnotteTab({ champ, standings, validatedGames }) {
   const medals = ['🥇', '🥈', '🥉'];
   const percents = [p1, p2, p3];
   const top3 = standings.slice(0, 3);
+
+  const handleEditClick = () => {
+    requireAdmin(() => {
+      setEp1(p1); setEp2(p2); setEp3(p3);
+      setEditing(true);
+    });
+  };
+
+  const handleSave = () => {
+    const total = Number(ep1) + Number(ep2) + Number(ep3);
+    if (total !== 100) {
+      alert(`La somme doit être égale à 100% (actuellement ${total}%)`);
+      return;
+    }
+    dispatch({
+      type: 'UPDATE_CHAMPIONSHIP_PERCENTS',
+      id: champ.id,
+      p1: Number(ep1),
+      p2: Number(ep2),
+      p3: Number(ep3),
+    });
+    setEditing(false);
+  };
 
   return (
     <div className="space-y-5">
@@ -351,30 +379,74 @@ function CagnotteTab({ champ, standings, validatedGames }) {
 
       {/* Distribution top 3 */}
       <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl p-4">
-        <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Gains cagnotte — Top 3 actuel</p>
-        {top3.length === 0 ? (
-          <p className="text-gray-600 text-sm text-center py-4">Aucun classement disponible</p>
-        ) : (
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-gray-400 uppercase tracking-wider">Gains cagnotte — Top 3 actuel</p>
+          {!editing && (
+            <button
+              onClick={handleEditClick}
+              className="flex items-center gap-1 text-xs text-yellow-400 border border-yellow-400/30 bg-yellow-400/10 hover:bg-yellow-400/20 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              <Lock className="w-3 h-3" />
+              Modifier
+            </button>
+          )}
+        </div>
+
+        {editing ? (
           <div className="space-y-3">
-            {top3.map((player, idx) => {
-              const gain = Math.round(totalCagnotte * percents[idx] / 100);
-              return (
-                <div key={player.name} className="flex items-center gap-3">
-                  <span className="text-xl">{medals[idx]}</span>
-                  <div className="flex-1">
-                    <p className="text-white text-sm font-semibold">{player.name}</p>
-                    <p className="text-gray-500 text-xs">{percents[idx]}% de la cagnotte</p>
-                  </div>
-                  <p className="text-yellow-400 font-bold text-lg">{gain} €</p>
+            {[{ label: '🥇 1er', val: ep1, set: setEp1 }, { label: '🥈 2ème', val: ep2, set: setEp2 }, { label: '🥉 3ème', val: ep3, set: setEp3 }].map(({ label, val, set }) => (
+              <div key={label} className="flex items-center justify-between">
+                <span className="text-sm text-gray-300">{label}</span>
+                <div className="flex items-center gap-1 bg-[#0f1923] rounded-lg px-3 py-2">
+                  <input
+                    type="number"
+                    value={val}
+                    min={0}
+                    max={100}
+                    onChange={e => set(e.target.value)}
+                    className="bg-transparent text-white text-right w-12 outline-none font-semibold"
+                  />
+                  <span className="text-gray-400 text-sm">%</span>
                 </div>
-              );
-            })}
+              </div>
+            ))}
+            <div className={`text-xs font-semibold text-right ${Number(ep1) + Number(ep2) + Number(ep3) === 100 ? 'text-green-400' : 'text-red-400'}`}>
+              Total : {Number(ep1) + Number(ep2) + Number(ep3)}%
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => setEditing(false)} className="flex-1 py-2 rounded-lg border border-white/10 text-gray-400 text-sm hover:text-white transition-colors">
+                Annuler
+              </button>
+              <button onClick={handleSave} className="flex-1 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm transition-colors">
+                Enregistrer
+              </button>
+            </div>
           </div>
-        )}
-        {top3.length > 0 && (
-          <p className="text-gray-600 text-xs text-center mt-4">
-            Répartition : {p1}% / {p2}% / {p3}%
-          </p>
+        ) : (
+          <>
+            {top3.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-4">Aucun classement disponible</p>
+            ) : (
+              <div className="space-y-3">
+                {top3.map((player, idx) => {
+                  const gain = Math.round(totalCagnotte * percents[idx] / 100);
+                  return (
+                    <div key={player.name} className="flex items-center gap-3">
+                      <span className="text-xl">{medals[idx]}</span>
+                      <div className="flex-1">
+                        <p className="text-white text-sm font-semibold">{player.name}</p>
+                        <p className="text-gray-500 text-xs">{percents[idx]}% de la cagnotte</p>
+                      </div>
+                      <p className="text-yellow-400 font-bold text-lg">{gain} €</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-gray-600 text-xs text-center mt-4">
+              Répartition : {p1}% / {p2}% / {p3}%
+            </p>
+          </>
         )}
       </div>
     </div>

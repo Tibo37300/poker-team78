@@ -192,6 +192,16 @@ export function StoreProvider({ children }) {
         break;
       }
 
+      case 'UPDATE_CHAMPIONSHIP_PERCENTS': {
+        const champRef = doc(db, 'championships', action.id);
+        await updateDoc(champRef, {
+          cagnottePercent1: action.p1,
+          cagnottePercent2: action.p2,
+          cagnottePercent3: action.p3,
+        });
+        break;
+      }
+
       case 'DELETE_CHAMPIONSHIP': {
         const gamesSnap = await getDocs(collection(db, 'championships', action.id, 'games'));
         await Promise.all(gamesSnap.docs.map(g => deleteDoc(g.ref)));

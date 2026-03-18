@@ -89,6 +89,7 @@ function computeStandings(games, dropCount = null) {
     const secondPlaces = gameResults.filter(g => g.rank === 2).length;
     const thirdPlaces = gameResults.filter(g => g.rank === 3).length;
     const kills = gameResults.reduce((sum, g) => sum + g.kills, 0);
+    const totalBonusPoints = gameResults.reduce((sum, g) => sum + g.bonusPoints, 0);
     const totalEarnings = gameResults.reduce((sum, g) => sum + g.earnings, 0);
 
     // En simulation : afficher le nb de parties qui comptent vraiment
@@ -96,7 +97,7 @@ function computeStandings(games, dropCount = null) {
       ? Math.max(0, totalValidated - gamesToDrop)
       : gamesPlayed;
 
-    return { name, totalPoints, totalEarnings, wins, secondPlaces, thirdPlaces, gamesPlayed: displayedGamesPlayed, kills };
+    return { name, totalPoints, totalEarnings, wins, secondPlaces, thirdPlaces, gamesPlayed: displayedGamesPlayed, kills, totalBonusPoints };
   }).sort((a, b) => {
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (b.wins !== a.wins) return b.wins - a.wins;

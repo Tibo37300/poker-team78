@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import PasswordModal from './PasswordModal';
 import {
   ArrowLeft, Plus, Trophy, CheckCircle, Clock, ChevronRight,
-  Users, TrendingUp, TrendingDown, Minus, Trash2, Lock, Unlock, DollarSign
+  Users, TrendingUp, TrendingDown, Minus, Trash2, Lock, Unlock, DollarSign, Sword
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -176,6 +176,15 @@ export default function ChampionshipView() {
           Parties ({champ.games.length})
         </button>
         <button
+          onClick={() => setTab('killers')}
+          className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            tab === 'killers' ? 'border-red-400 text-red-400' : 'border-transparent text-gray-400'
+          }`}
+        >
+          <Sword className="w-4 h-4" />
+          Killers
+        </button>
+        <button
           onClick={() => setTab('cagnotte')}
           className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
             tab === 'cagnotte' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-gray-400'
@@ -239,6 +248,63 @@ export default function ChampionshipView() {
             )}
           </div>
         )}
+
+        {/* KILLERS TAB */}
+        {tab === 'killers' && (() => {
+          const killers = [...standings]
+            .filter(p => p.kills > 0)
+            .sort((a, b) => b.kills - a.kills);
+          return (
+            <div>
+              {killers.length === 0 ? (
+                <div className="text-center py-16 text-gray-500">
+                  <Sword className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p>Aucun kill enregistré</p>
+                  <p className="text-sm mt-1">Validez des parties pour voir le classement</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {killers.map((player, idx) => {
+                    const isTop = idx === 0;
+                    return (
+                      <div
+                        key={player.name}
+                        className={`bg-[#1e2d3d]/80 border rounded-xl p-3 flex items-center gap-3 ${
+                          isTop ? 'border-red-500/40' : 'border-white/10'
+                        }`}
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          isTop ? 'bg-red-600/20' : 'bg-white/5'
+                        }`}>
+                          {isTop
+                            ? <span className="text-lg">💀</span>
+                            : <span className="font-bold text-sm text-gray-500">{idx + 1}</span>
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-white">{player.name}</p>
+                          <p className="text-xs text-gray-500">{player.gamesPlayed} parties jouées</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className={`flex items-center gap-1.5 font-bold text-lg ${isTop ? 'text-red-400' : 'text-gray-300'}`}>
+                            <Sword className="w-4 h-4" />
+                            {player.kills}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {(player.kills / Math.max(player.gamesPlayed, 1)).toFixed(1)} /partie
+                          </p>
+                          {player.totalBonusPoints > 0 && (
+                            <p className="text-xs text-yellow-400 font-semibold">+{player.totalBonusPoints} pts bonus</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* CAGNOTTE TAB */}
         {tab === 'cagnotte' && (

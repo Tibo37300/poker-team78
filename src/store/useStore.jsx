@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useState, useEffect, useCallback, useRef } from 'react';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   onSnapshot, serverTimestamp, query, orderBy, getDocs
@@ -37,11 +37,12 @@ function calculateEarnings(player, game, championship) {
   return prize - cost;
 }
 
-function computeStandings(games) {
+function computeStandings(games, dropCount = null) {
+  const validatedGames = games.filter(g => g.validated);
+  const totalValidated = validatedGames.length;
   const playerMap = {};
 
-  // Collect all game results per player
-  games.filter(g => g.validated).forEach(game => {
+  validatedGames.forEach(game => {
     game.players.forEach(player => {
       if (!playerMap[player.name]) {
         playerMap[player.name] = { name: player.name, gameResults: [] };
@@ -59,27 +60,44 @@ function computeStandings(games) {
   return Object.values(playerMap).map(({ name, gameResults }) => {
     const gamesPlayed = gameResults.length;
 
-    // Règle 1 : seules les 11 meilleures parties comptent
-    const sorted = [...gameResults].sort((a, b) => a.totalPoints - b.totalPoints);
-    const gamesToDrop = Math.max(0, gamesPlayed - 11);
+    let pool = [...gameResults];
+    let gamesToDrop;
+
+    if (dropCount !== null) {
+      // Simulation : les absences comptent comme des parties à 0 pts
+      const absences = totalValidated - gamesPlayed;
+      for (let i = 0; i < absences; i++) {
+        pool.push({ totalPoints: 0, bonusPoints: 0, rank: null, kills: 0, earnings: 0 });
+      }
+      gamesToDrop = Math.min(dropCount, pool.length);
+    } else {
+      // Règle auto : 11 meilleures parties
+      gamesToDrop = Math.max(0, gamesPlayed - 11);
+    }
+
+    const sorted = pool.sort((a, b) => a.totalPoints - b.totalPoints);
     const droppedGames = sorted.slice(0, gamesToDrop);
     const keptGames = sorted.slice(gamesToDrop);
 
-    // Règle 2 : les bonus kills des parties éliminées sont conservés
+    // Bonus kills des parties supprimées conservés
     const pointsFromKept = keptGames.reduce((sum, g) => sum + g.totalPoints, 0);
     const bonusFromDropped = droppedGames.reduce((sum, g) => sum + g.bonusPoints, 0);
     const totalPoints = pointsFromKept + bonusFromDropped;
 
-    // Stats globales (toutes parties)
+    // Stats globales (toutes parties réelles)
     const wins = gameResults.filter(g => g.rank === 1).length;
     const secondPlaces = gameResults.filter(g => g.rank === 2).length;
     const thirdPlaces = gameResults.filter(g => g.rank === 3).length;
     const kills = gameResults.reduce((sum, g) => sum + g.kills, 0);
     const totalEarnings = gameResults.reduce((sum, g) => sum + g.earnings, 0);
 
-    return { name, totalPoints, totalEarnings, wins, secondPlaces, thirdPlaces, gamesPlayed, kills };
+    // En simulation : afficher le nb de parties qui comptent vraiment
+    const displayedGamesPlayed = dropCount !== null
+      ? Math.max(0, totalValidated - gamesToDrop)
+      : gamesPlayed;
+
+    return { name, totalPoints, totalEarnings, wins, secondPlaces, thirdPlaces, gamesPlayed: displayedGamesPlayed, kills };
   }).sort((a, b) => {
-    // Règle 3 : départage en cas d'égalité
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (b.wins !== a.wins) return b.wins - a.wins;
     const podiumA = a.wins + a.secondPlaces + a.thirdPlaces;
@@ -148,23 +166,26 @@ export function StoreProvider({ children }) {
     return unsub;
   }, []);
 
-  // Real-time listener on games for current championship
+  // Real-time listener on games for ALL championships
+  const gameListenersRef = useRef({});
   useEffect(() => {
-    if (!ui.currentChampionshipId) return;
-    const q = query(
-      collection(db, 'championships', ui.currentChampionshipId, 'games'),
-      orderBy('createdAt', 'asc')
-    );
-    const unsub = onSnapshot(q, (snapshot) => {
-      const games = snapshot.docs.map(g => ({ id: g.id, ...g.data() }));
-      setChampionships(prev =>
-        prev.map(c =>
-          c.id === ui.currentChampionshipId ? { ...c, games } : c
-        )
-      );
+    // Subscribe to new championships
+    championships.forEach(champ => {
+      if (gameListenersRef.current[champ.id]) return;
+      const q = query(collection(db, 'championships', champ.id, 'games'), orderBy('createdAt', 'asc'));
+      gameListenersRef.current[champ.id] = onSnapshot(q, (snapshot) => {
+        const games = snapshot.docs.map(g => ({ id: g.id, ...g.data() }));
+        setChampionships(prev => prev.map(c => c.id === champ.id ? { ...c, games } : c));
+      });
     });
-    return unsub;
-  }, [ui.currentChampionshipId]);
+    // Unsubscribe from deleted championships
+    Object.keys(gameListenersRef.current).forEach(id => {
+      if (!championships.find(c => c.id === id)) {
+        gameListenersRef.current[id]();
+        delete gameListenersRef.current[id];
+      }
+    });
+  }, [championships.map(c => c.id).join(',')]);
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
@@ -238,6 +259,25 @@ export function StoreProvider({ children }) {
         break;
       }
 
+      case 'UPDATE_GAME': {
+        const champ = championships.find(c => c.id === ui.currentChampionshipId);
+        if (!champ) break;
+        const playersWithPoints = calculateGamePoints(action.data.players);
+        const playersWithEarnings = playersWithPoints.map(p => ({
+          ...p,
+          earnings: calculateEarnings(p, action.data, champ),
+        }));
+        const gameRef = doc(db, 'championships', ui.currentChampionshipId, 'games', action.gameId);
+        await updateDoc(gameRef, {
+          organizer: action.data.organizer,
+          date: action.data.date,
+          prizes: action.data.prizes,
+          players: playersWithEarnings,
+        });
+        dispatchUI({ type: 'SET_VIEW', view: 'game-detail' });
+        break;
+      }
+
       case 'DELETE_GAME': {
         const gameRef = doc(db, 'championships', ui.currentChampionshipId, 'games', action.gameId);
         await deleteDoc(gameRef);
@@ -256,10 +296,10 @@ export function StoreProvider({ children }) {
     [championships, ui.currentChampionshipId]
   );
 
-  const getStandings = useCallback((championshipId) => {
+  const getStandings = useCallback((championshipId, dropCount = null) => {
     const champ = championships.find(c => c.id === (championshipId || ui.currentChampionshipId));
     if (!champ) return [];
-    return computeStandings(champ.games);
+    return computeStandings(champ.games, dropCount);
   }, [championships, ui.currentChampionshipId]);
 
   const getPlayerHistory = useCallback((playerName, championshipId) => {

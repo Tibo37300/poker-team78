@@ -40,12 +40,13 @@ export default function ChampionshipView() {
   const champ = getCurrentChampionship();
   const [tab, setTab] = useState('standings');
   const [modal, setModal] = useState(null); // null | { action: fn }
+  const [dropCount, setDropCount] = useState(null); // null = auto (règle 11 parties), 0/1/2 = simulation
 
   const { isAdmin, tryLogin, logout } = useAdminSession(champ);
 
   if (!champ) return null;
 
-  const standings = getStandings();
+  const standings = getStandings(null, dropCount);
   const validatedGames = champ.games.filter(g => g.validated);
 
   // Wrap any admin action: if already admin, run immediately; else show modal
@@ -189,6 +190,31 @@ export default function ChampionshipView() {
         {/* STANDINGS TAB */}
         {tab === 'standings' && (
           <div>
+            {/* Sélecteur suppression pires scores */}
+            <div className="bg-[#1e2d3d]/60 border border-white/10 rounded-xl p-3 mb-4">
+              <p className="text-xs text-gray-400 mb-2">Supprimer les N pires scores par joueur :</p>
+              <div className="flex gap-2">
+                {[{ label: 'Règle auto', value: null }, { label: '- 1 score', value: 1 }, { label: '- 2 scores', value: 2 }].map(opt => (
+                  <button
+                    key={String(opt.value)}
+                    onClick={() => setDropCount(opt.value)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                      dropCount === opt.value
+                        ? 'bg-green-600/30 border-green-500/50 text-green-400'
+                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {dropCount !== null && (
+                <p className="text-xs text-yellow-400/70 mt-2 text-center">
+                  Simulation — {dropCount} pire{dropCount > 1 ? 's' : ''} score{dropCount > 1 ? 's' : ''} retiré{dropCount > 1 ? 's' : ''} par joueur
+                </p>
+              )}
+            </div>
+
             {standings.length === 0 ? (
               <div className="text-center py-16 text-gray-500">
                 <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />

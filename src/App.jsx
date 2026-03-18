@@ -27,6 +27,7 @@ function Router() {
     case 'create-championship': return <ChampionshipForm />;
     case 'championship':    return <ChampionshipView />;
     case 'create-game':     return <GameForm />;
+    case 'edit-game':       return <GameForm editMode />;
     case 'game-detail':     return <GameDetailView />;
     case 'player-detail':   return <PlayerDetailView />;
     default:                return <HomeView />;

@@ -53,7 +53,7 @@ export default function HomeView() {
           <div className="space-y-3">
             {state.championships.map(champ => {
               const validatedGames = champ.games.filter(g => g.validated).length;
-              const allPlayers = new Set(champ.games.flatMap(g => g.players.map(p => p.name)));
+              const allPlayers = champ.players || [];
               return (
                 <div
                   key={champ.id}
@@ -72,7 +72,7 @@ export default function HomeView() {
                       </span>
                       <span className="flex items-center gap-1 text-xs text-gray-400">
                         <Users className="w-3 h-3" />
-                        {allPlayers.size} joueurs
+                        {allPlayers.length} joueurs
                       </span>
                     </div>
                   </div>

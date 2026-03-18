@@ -6,20 +6,27 @@ function makePlayer(name, rank) {
   return { name, rank, rebuys: 0, kills: 0, killedPlayers: [], absent: false };
 }
 
-export default function GameForm() {
+export default function GameForm({ editMode = false }) {
   const { state, dispatch, getCurrentChampionship } = useStore();
   const champ = getCurrentChampionship();
 
-  // Pre-populate from championship registered players
-  const initialPlayers = champ?.players?.length > 0
-    ? champ.players.map((name, i) => makePlayer(name, i + 1))
-    : [makePlayer('', 1)];
+  // In edit mode, pre-populate from existing game
+  const editGame = editMode ? champ?.games.find(g => g.id === state.selectedGameId) : null;
+
+  const initialPlayers = editGame
+    ? (champ?.players || []).map(name => {
+        const existing = editGame.players.find(p => p.name === name);
+        return existing ? { ...existing, absent: false } : { ...makePlayer(name, 1), absent: true };
+      })
+    : champ?.players?.length > 0
+      ? champ.players.map((name, i) => makePlayer(name, i + 1))
+      : [makePlayer('', 1)];
 
   const [form, setForm] = useState({
-    organizer: '',
-    date: new Date().toISOString().split('T')[0],
+    organizer: editGame?.organizer || '',
+    date: editGame?.date || new Date().toISOString().split('T')[0],
     players: initialPlayers,
-    prizes: { first: 0, second: 0, third: 0 },
+    prizes: editGame?.prizes || { first: 0, second: 0, third: 0 },
   });
   const [activeTab, setActiveTab] = useState('infos');
 
@@ -86,25 +93,28 @@ export default function GameForm() {
     const uniqueRanks = new Set(ranks);
     if (uniqueRanks.size !== ranks.length) { alert('Chaque joueur présent doit avoir un classement unique'); return; }
 
-    dispatch({
-      type: 'CREATE_GAME',
-      data: {
-        organizer: form.organizer,
-        date: form.date,
-        players: present.map(p => ({
-          name: p.name.trim(),
-          rank: Number(p.rank),
-          rebuys: Number(p.rebuys),
-          kills: Number(p.kills),
-          killedPlayers: p.killedPlayers,
-        })),
-        prizes: {
-          first: Number(form.prizes.first),
-          second: Number(form.prizes.second),
-          third: Number(form.prizes.third),
-        },
+    const data = {
+      organizer: form.organizer,
+      date: form.date,
+      players: present.map(p => ({
+        name: p.name.trim(),
+        rank: Number(p.rank),
+        rebuys: Number(p.rebuys),
+        kills: Number(p.kills),
+        killedPlayers: p.killedPlayers,
+      })),
+      prizes: {
+        first: Number(form.prizes.first),
+        second: Number(form.prizes.second),
+        third: Number(form.prizes.third),
       },
-    });
+    };
+
+    if (editMode && editGame) {
+      dispatch({ type: 'UPDATE_GAME', gameId: editGame.id, data });
+    } else {
+      dispatch({ type: 'CREATE_GAME', data });
+    }
   };
 
   const absentCount = form.players.filter(p => p.absent).length;
@@ -125,7 +135,7 @@ export default function GameForm() {
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-white">Nouvelle Partie</h1>
+          <h1 className="text-xl font-bold text-white">{editMode ? 'Modifier la partie' : 'Nouvelle Partie'}</h1>
           <p className="text-xs text-gray-400">{champ.name}</p>
         </div>
       </div>
@@ -228,22 +238,51 @@ export default function GameForm() {
         )}
 
         {/* PRIZES TAB */}
-        {activeTab === 'prizes' && (
+        {activeTab === 'prizes' && (() => {
+          const totalRebuys = presentPlayers.reduce((sum, p) => sum + Number(p.rebuys || 0), 0);
+          const potCalcule = presentPlayers.length * (champ.entryFee || 0) + totalRebuys * (champ.rebuyFee || 0);
+          const potRenseigne = Number(form.prizes.first) + Number(form.prizes.second) + Number(form.prizes.third);
+          const potMatch = potCalcule > 0 && potRenseigne === potCalcule;
+          const potMismatch = potRenseigne !== potCalcule;
+          const suggested1 = Math.round(potCalcule * (champ.cagnottePercent1 || 0) / 100);
+          const suggested2 = Math.round(potCalcule * (champ.cagnottePercent2 || 0) / 100);
+          const suggested3 = Math.round(potCalcule * (champ.cagnottePercent3 || 0) / 100);
+          return (
           <div className="space-y-4">
             <div className="bg-[#1e2d3d]/80 rounded-xl p-4 border border-white/10 space-y-4">
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
                 Gains de la partie
               </h3>
+
+              {/* Pot total banner */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pot total</span>
+                  {potCalcule > 0 && potMismatch && (
+                    <span className="text-xs text-red-400 mt-0.5">calculé : {potCalcule}€</span>
+                  )}
+                </div>
+                <div className={`flex items-center gap-1 rounded-lg px-3 py-2 flex-shrink-0 ${
+                  potMatch ? 'bg-green-600' : potMismatch && potRenseigne > 0 ? 'bg-red-600' : 'bg-[#0f1923]'
+                }`}>
+                  <span className="block text-white text-right w-20 font-semibold">{potRenseigne}</span>
+                  <span className="text-white/70 text-sm">€</span>
+                </div>
+              </div>
+
               <PrizeField
                 rank={1} emoji="🥇" value={form.prizes.first}
+                suggested={suggested1} percent={champ.cagnottePercent1}
                 onChange={v => setForm(f => ({ ...f, prizes: { ...f.prizes, first: v } }))}
               />
               <PrizeField
                 rank={2} emoji="🥈" value={form.prizes.second}
+                suggested={suggested2} percent={champ.cagnottePercent2}
                 onChange={v => setForm(f => ({ ...f, prizes: { ...f.prizes, second: v } }))}
               />
               <PrizeField
                 rank={3} emoji="🥉" value={form.prizes.third}
+                suggested={suggested3} percent={champ.cagnottePercent3}
                 onChange={v => setForm(f => ({ ...f, prizes: { ...f.prizes, third: v } }))}
               />
             </div>
@@ -275,7 +314,8 @@ export default function GameForm() {
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Submit */}
@@ -285,7 +325,7 @@ export default function GameForm() {
           className="w-full bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-green-900/50 flex items-center justify-center gap-2"
         >
           <Trophy className="w-5 h-5" />
-          Enregistrer la partie ({presentPlayers.length} joueurs)
+          {editMode ? 'Enregistrer les modifications' : `Enregistrer la partie (${presentPlayers.length} joueurs)`}
         </button>
       </div>
     </div>
@@ -463,15 +503,20 @@ function PlayerCard({ player, idx, totalPresent, allPresentNames, onUpdate, onRe
   );
 }
 
-function PrizeField({ rank, emoji, value, onChange }) {
+function PrizeField({ rank, emoji, value, onChange, suggested, percent }) {
   const labels = { 1: '1ère place', 2: '2ème place', 3: '3ème place' };
   return (
-    <div className="flex items-center justify-between">
-      <label className="flex items-center gap-2 text-sm text-gray-300">
-        <span className="text-lg">{emoji}</span>
-        {labels[rank]}
-      </label>
-      <div className="flex items-center gap-1 bg-[#0f1923] rounded-lg px-3 py-2">
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col">
+        <label className="flex items-center gap-2 text-sm text-gray-300">
+          <span className="text-lg">{emoji}</span>
+          {labels[rank]}
+        </label>
+        {suggested > 0 && (
+          <span className="text-xs text-gray-500 ml-7">{percent}% → {suggested}€</span>
+        )}
+      </div>
+      <div className="flex items-center gap-1 bg-[#0f1923] rounded-lg px-3 py-2 flex-shrink-0">
         <input
           type="number"
           value={value}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { ArrowLeft, CheckCircle, Clock, Trophy, Sword, RefreshCw, Lock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Trophy, Sword, RefreshCw, Lock, Pencil } from 'lucide-react';
 import PasswordModal from './PasswordModal';
 
 const adminKey = (id) => `admin_champ_${id}`;
@@ -8,6 +8,7 @@ const adminKey = (id) => `admin_champ_${id}`;
 export default function GameDetailView() {
   const { state, dispatch } = useStore();
   const [showModal, setShowModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'validate' | 'edit'
 
   const champ = state.championships.find(c => c.id === state.currentChampionshipId);
   const game = champ?.games.find(g => g.id === state.selectedGameId);
@@ -21,6 +22,16 @@ export default function GameDetailView() {
       dispatch({ type: 'VALIDATE_GAME', gameId: game.id });
       dispatch({ type: 'SET_VIEW', view: 'championship' });
     } else {
+      setPendingAction('validate');
+      setShowModal(true);
+    }
+  };
+
+  const handleEdit = () => {
+    if (isAdmin) {
+      dispatch({ type: 'SET_VIEW', view: 'edit-game' });
+    } else {
+      setPendingAction('edit');
       setShowModal(true);
     }
   };
@@ -29,8 +40,13 @@ export default function GameDetailView() {
     if (!champ || password !== champ.adminPassword) return false;
     sessionStorage.setItem(adminKey(champ.id), '1');
     setShowModal(false);
-    dispatch({ type: 'VALIDATE_GAME', gameId: game.id });
-    dispatch({ type: 'SET_VIEW', view: 'championship' });
+    if (pendingAction === 'edit') {
+      dispatch({ type: 'SET_VIEW', view: 'edit-game' });
+    } else {
+      dispatch({ type: 'VALIDATE_GAME', gameId: game.id });
+      dispatch({ type: 'SET_VIEW', view: 'championship' });
+    }
+    setPendingAction(null);
     return true;
   };
 
@@ -86,7 +102,14 @@ export default function GameDetailView() {
 
         {/* Prizes */}
         <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl p-4">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Gains</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Gains</h3>
+            <span className="text-xs text-gray-400">
+              Pot total : <span className="text-white font-bold">
+                {game.players.length * (champ?.entryFee || 0) + game.players.reduce((sum, p) => sum + (p.rebuys || 0), 0) * (champ?.rebuyFee || 0)}€
+              </span>
+            </span>
+          </div>
           <div className="flex gap-3">
             <PrizeBadge emoji="🥇" amount={game.prizes.first} />
             <PrizeBadge emoji="🥈" amount={game.prizes.second} />
@@ -106,8 +129,8 @@ export default function GameDetailView() {
           </div>
         </div>
 
-        {/* Validate button */}
-        {!game.validated && (
+        {/* Action buttons */}
+        {!game.validated ? (
           <button
             onClick={handleValidate}
             className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-green-900/30 flex items-center justify-center gap-2 text-lg"
@@ -115,6 +138,16 @@ export default function GameDetailView() {
             {isAdmin ? <CheckCircle className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
             Valider la partie
           </button>
+        ) : (
+          <div className="flex justify-end">
+            <button
+              onClick={handleEdit}
+              className="flex items-center gap-2 bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-400 font-semibold px-5 py-2.5 rounded-full transition-colors"
+            >
+              <Lock className="w-4 h-4" />
+              Modifier
+            </button>
+          </div>
         )}
       </div>
     </div>

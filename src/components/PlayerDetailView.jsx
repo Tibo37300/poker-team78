@@ -22,19 +22,22 @@ export default function PlayerDetailView() {
   // Build cumulative chart data
   let cumulPoints = 0;
   let cumulEarnings = 0;
-  const chartData = history.map((game, idx) => {
-    if (game.participated) {
-      cumulPoints += game.points || 0;
-      cumulEarnings += game.earnings || 0;
-    }
-    return {
-      name: `P${idx + 1}`,
-      date: game.date ? new Date(game.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : `P${idx+1}`,
-      points: cumulPoints,
-      earnings: cumulEarnings,
-      participated: game.participated,
-    };
-  });
+  const chartData = [
+    { name: 'Début', date: 'Début', points: 0, earnings: 0, participated: false },
+    ...history.map((game, idx) => {
+      if (game.participated) {
+        cumulPoints += game.points || 0;
+        cumulEarnings += game.earnings || 0;
+      }
+      return {
+        name: `P${idx + 1}`,
+        date: game.date ? new Date(game.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : `P${idx+1}`,
+        points: cumulPoints,
+        earnings: cumulEarnings,
+        participated: game.participated,
+      };
+    }),
+  ];
 
   const totalGames = champ.games.filter(g => g.validated).length;
 

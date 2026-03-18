@@ -156,10 +156,10 @@ export default function ChampionshipView() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10 px-4">
+      <div className="flex border-b border-white/10 px-4 overflow-x-auto scrollbar-none">
         <button
           onClick={() => setTab('standings')}
-          className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             tab === 'standings' ? 'border-green-400 text-green-400' : 'border-transparent text-gray-400'
           }`}
         >
@@ -168,7 +168,7 @@ export default function ChampionshipView() {
         </button>
         <button
           onClick={() => setTab('games')}
-          className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             tab === 'games' ? 'border-green-400 text-green-400' : 'border-transparent text-gray-400'
           }`}
         >
@@ -177,7 +177,7 @@ export default function ChampionshipView() {
         </button>
         <button
           onClick={() => setTab('killers')}
-          className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             tab === 'killers' ? 'border-red-400 text-red-400' : 'border-transparent text-gray-400'
           }`}
         >
@@ -186,7 +186,7 @@ export default function ChampionshipView() {
         </button>
         <button
           onClick={() => setTab('cagnotte')}
-          className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
             tab === 'cagnotte' ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-gray-400'
           }`}
         >

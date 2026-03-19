@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { ArrowLeft, CheckCircle, Clock, Trophy, Sword, RefreshCw, Lock, Pencil, Download } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Trophy, Sword, RefreshCw, Lock, Pencil, Download, FileSpreadsheet, FileText, X } from 'lucide-react';
 import PasswordModal from './PasswordModal';
 import { exportGameToExcel } from '../utils/exportExcel';
+import { exportGameToPdf } from '../utils/exportPdf';
 
 const adminKey = (id) => `admin_champ_${id}`;
 
@@ -10,6 +11,7 @@ export default function GameDetailView() {
   const { state, dispatch } = useStore();
   const [showModal, setShowModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // 'validate' | 'edit'
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const champ = state.championships.find(c => c.id === state.currentChampionshipId);
   const game = champ?.games.find(g => g.id === state.selectedGameId);
@@ -65,6 +67,45 @@ export default function GameDetailView() {
           onSuccess={handlePasswordSuccess}
           onCancel={() => setShowModal(false)}
         />
+      )}
+
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-end justify-center z-50 p-4">
+          <div className="bg-[#1e2d3d] border border-white/10 rounded-2xl w-full max-w-sm p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-bold text-lg">Exporter la partie</h3>
+              <button onClick={() => setShowExportModal(false)} className="text-gray-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => { exportGameToExcel({ game, champ }); setShowExportModal(false); }}
+                className="w-full flex items-center gap-4 bg-green-600/10 hover:bg-green-600/20 border border-green-600/30 rounded-xl p-4 transition-colors text-left"
+              >
+                <div className="bg-green-600/20 rounded-lg p-2.5">
+                  <FileSpreadsheet className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold">Excel (.xls)</p>
+                  <p className="text-gray-400 text-xs mt-0.5">3 onglets : Partie, Classement, Top Killers</p>
+                </div>
+              </button>
+              <button
+                onClick={() => { exportGameToPdf({ game, champ }); setShowExportModal(false); }}
+                className="w-full flex items-center gap-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl p-4 transition-colors text-left"
+              >
+                <div className="bg-red-500/20 rounded-lg p-2.5">
+                  <FileText className="w-6 h-6 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold">PDF</p>
+                  <p className="text-gray-400 text-xs mt-0.5">Tableaux colorés, impression ou sauvegarde</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {/* Header */}
       <div className="flex items-center gap-3 p-4 pt-6">
@@ -142,7 +183,7 @@ export default function GameDetailView() {
         ) : (
           <div className="flex justify-end gap-2">
             <button
-              onClick={() => exportGameToExcel({ game, champ })}
+              onClick={() => setShowExportModal(true)}
               className="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 font-semibold px-5 py-2.5 rounded-full transition-colors"
             >
               <Download className="w-4 h-4" />

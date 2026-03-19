@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { ArrowLeft, CheckCircle, Clock, Trophy, Sword, RefreshCw, Lock, Pencil } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Clock, Trophy, Sword, RefreshCw, Lock, Pencil, Download } from 'lucide-react';
 import PasswordModal from './PasswordModal';
+import { exportGameToExcel } from '../utils/exportExcel';
 
 const adminKey = (id) => `admin_champ_${id}`;
 
@@ -139,7 +140,14 @@ export default function GameDetailView() {
             Valider la partie
           </button>
         ) : (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => exportGameToExcel({ game, champ })}
+              className="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 font-semibold px-5 py-2.5 rounded-full transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Get File
+            </button>
             <button
               onClick={handleEdit}
               className="flex items-center gap-2 bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 text-yellow-400 font-semibold px-5 py-2.5 rounded-full transition-colors"

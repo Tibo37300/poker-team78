@@ -37,7 +37,7 @@ function calculateEarnings(player, game, championship) {
   return prize - cost;
 }
 
-function computeStandings(games, dropCount = null) {
+export function computeStandings(games, dropCount = null) {
   const validatedGames = games.filter(g => g.validated);
   const totalValidated = validatedGames.length;
   const playerMap = {};

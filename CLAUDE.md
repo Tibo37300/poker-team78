@@ -64,6 +64,7 @@ VITE_FIREBASE_APP_ID=...
 
 ## Règles métier importantes
 - **Points par classement** : rang n → (14-n) points. 1er=13, 2ème=12, ... 13ème=1, au-delà=0
+
 - **Bonus kills** : top killer unique → +2pts | 2ème killer → +1pt | ex-aequo au top → +1pt chacun
 - **Gains** = prize gagné − entryFee − (rebuys × rebuyFee)
 - Une partie doit être **validée** par l'admin pour compter dans le classement
@@ -106,6 +107,34 @@ VITE_FIREBASE_APP_ID=...
 - [x] Onglet Cagnotte : courbe évolution + répartition top 3
 - [x] Titre page : "Poker League Management"
 - [x] Footer © 2026 Team78 by Thibaut MAS
+- [x] Simulateur suppression N pires scores (0/1/2) dans l'onglet Classement
+- [x] Absences comptent comme 0 pts en mode simulation
+- [x] Courbe joueur part de l'origine (0,0)
+- [x] Chargement des parties de tous les championnats au démarrage (compte correct sur HomeView)
+- [x] Onglet Killers : classement par kills totaux + bonus pts kill + ratio /partie
+- [x] GameDetailView : affichage du pot total calculé (inscriptions + recaves) dans le bloc Gains
+- [x] GameForm onglet Gains : pot total saisi (vert/rouge vs pot calculé) + montants suggérés par %
+- [x] GameForm : classement et recaves via listes déroulantes (UX mobile)
+- [x] Barre d'onglets championship scrollable horizontalement sur mobile (scrollbar cachée)
+- [x] Modification partie validée protégée par mot de passe admin
+
+## Détails techniques récents
+
+### computeStandings (useStore.jsx)
+- Retourne `totalBonusPoints` par joueur (somme des bonusPoints de toutes les parties réelles)
+- `dropCount=null` → règle auto 11 meilleures parties
+- `dropCount=1|2` → simulation avec absences comptées comme 0 pts
+
+### GameForm — onglet Gains
+- `potCalcule` = `nb présents × entryFee + totalRebuys × rebuyFee`
+- `potRenseigne` = somme des 3 montants saisis
+- Fond vert si égaux, rouge si différents, montant calculé affiché en sous-titre si différent
+- Montants suggérés via `cagnottePercent1/2/3` du championnat
+
+### Onglet Killers (ChampionshipView)
+- Filtre les joueurs avec kills > 0, triés par kills desc
+- Top killer : fond rouge + icône 💀
+- Affiche : kills totaux, ratio /partie, bonus pts kill (en jaune)
 
 ## Décisions de conception
 - Pas de système d'authentification Firebase Auth → mot de passe simple géré dans l'app

@@ -1,27 +1,51 @@
-import * as XLSX from 'xlsx';
 import { computeStandings } from '../store/useStore';
 
-function styleHeader(ws, cellRef, value) {
-  ws[cellRef] = {
-    v: value,
-    t: 's',
-    s: {
-      font: { bold: true, color: { rgb: 'FFFFFF' } },
-      fill: { fgColor: { rgb: '1A472A' } },
-      alignment: { horizontal: 'center' },
-    },
-  };
+function escapeXml(val) {
+  if (val === null || val === undefined) return '';
+  return String(val)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function cell(value, type = 'String', bold = false, bg = '') {
+  const styleId = bold ? (bg ? '3' : '2') : bg ? '4' : '1';
+  return `<Cell ss:StyleID="s${styleId}"><Data ss:Type="${type}">${escapeXml(value)}</Data></Cell>`;
+}
+
+function numCell(value, bold = false) {
+  return `<Cell ss:StyleID="s${bold ? '2' : '1'}"><Data ss:Type="Number">${value}</Data></Cell>`;
+}
+
+function headerCell(value) {
+  return `<Cell ss:StyleID="sH"><Data ss:Type="String">${escapeXml(value)}</Data></Cell>`;
+}
+
+function emptyRow() {
+  return '<Row><Cell/></Row>';
+}
+
+function buildSheet(name, rows) {
+  const xmlRows = rows.map(row => {
+    if (row === null) return emptyRow();
+    const cells = row.map(c => {
+      if (c && typeof c === 'object') {
+        if (c.header) return headerCell(c.v);
+        if (c.type === 'Number') return numCell(c.v, c.bold);
+        return cell(c.v, 'String', c.bold);
+      }
+      return cell(c);
+    }).join('');
+    return `<Row>${cells}</Row>`;
+  }).join('\n');
+
+  return `<Worksheet ss:Name="${escapeXml(name)}"><Table>${xmlRows}</Table></Worksheet>`;
 }
 
 export function exportGameToExcel({ game, champ }) {
-  // Classement calculé uniquement sur les parties validées jusqu'à la date de cette partie
-  const gamesUpToDate = champ.games.filter(
-    g => g.validated && g.date <= game.date
-  );
+  const gamesUpToDate = champ.games.filter(g => g.validated && g.date <= game.date);
   const standings = computeStandings(gamesUpToDate);
-  const wb = XLSX.utils.book_new();
-
-  // ── SHEET 1 : Détail de la partie ────────────────────────────────────────
 
   const gameDate = new Date(game.date).toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -31,93 +55,101 @@ export function exportGameToExcel({ game, champ }) {
   const totalRebuys = game.players.reduce((s, p) => s + (p.rebuys || 0), 0);
   const potCalcule = game.players.length * (champ.entryFee || 0) + totalRebuys * (champ.rebuyFee || 0);
 
-  const gameRows = [
-    [`${champ.name} — Résultat de la partie`],
-    [`Date : ${gameDate}`, '', `Organisateur : ${game.organizer}`],
-    [`Joueurs présents : ${game.players.length}`, '', `Pot total : ${potCalcule} €`],
-    [`Gains : 🥇 ${game.prizes.first}€  🥈 ${game.prizes.second}€  🥉 ${game.prizes.third}€`],
-    [],
-    ['Rang', 'Joueur', 'Recaves', 'Kills', 'Joueurs éliminés', 'Pts classement', 'Pts bonus kill', 'Total pts', 'Gains (€)'],
+  // ── Sheet 1: Partie ─────────────────────────────────────────────────────
+  const partieRows = [
+    [{ v: `${champ.name} — Résultat de la partie`, bold: true }],
+    [{ v: `Date : ${gameDate}` }, { v: '' }, { v: `Organisateur : ${game.organizer}` }],
+    [{ v: `Joueurs présents : ${game.players.length}` }, { v: '' }, { v: `Pot total : ${potCalcule} €` }],
+    [{ v: `Gains : 1er=${game.prizes.first}€  2ème=${game.prizes.second}€  3ème=${game.prizes.third}€` }],
+    null,
+    [
+      { v: 'Rang', header: true }, { v: 'Joueur', header: true },
+      { v: 'Recaves', header: true }, { v: 'Kills', header: true },
+      { v: 'Joueurs éliminés', header: true }, { v: 'Pts classement', header: true },
+      { v: 'Pts bonus kill', header: true }, { v: 'Total pts', header: true },
+      { v: 'Gains (€)', header: true },
+    ],
     ...sortedPlayers.map(p => [
-      p.rank,
-      p.name,
-      p.rebuys || 0,
-      p.kills || 0,
-      (p.killedPlayers || []).join(', '),
-      (p.points || 0) - (p.bonusPoints || 0),
-      p.bonusPoints || 0,
-      p.points || 0,
-      p.earnings || 0,
+      { v: p.rank, type: 'Number' },
+      { v: p.name },
+      { v: p.rebuys || 0, type: 'Number' },
+      { v: p.kills || 0, type: 'Number' },
+      { v: (p.killedPlayers || []).join(', ') },
+      { v: (p.points || 0) - (p.bonusPoints || 0), type: 'Number' },
+      { v: p.bonusPoints || 0, type: 'Number' },
+      { v: p.points || 0, type: 'Number', bold: true },
+      { v: p.earnings || 0, type: 'Number', bold: true },
     ]),
   ];
 
-  const ws1 = XLSX.utils.aoa_to_sheet(gameRows);
-
-  // Column widths
-  ws1['!cols'] = [
-    { wch: 6 }, { wch: 16 }, { wch: 8 }, { wch: 6 },
-    { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws1, 'Partie');
-
-  // ── SHEET 2 : Classement du championnat ──────────────────────────────────
-
-  const standingsRows = [
-    [`${champ.name} — Classement à l'issue de la partie du ${new Date(game.date).toLocaleDateString('fr-FR')}`],
-    [`${gamesUpToDate.length} partie(s) comptabilisée(s) sur ${champ.totalGames}`],
-    [],
-    ['Rang', 'Joueur', 'Parties', 'Victoires', '2ème', '3ème', 'Kills', 'Pts bonus kill', 'Total pts', 'Gains (€)'],
+  // ── Sheet 2: Classement ──────────────────────────────────────────────────
+  const classementRows = [
+    [{ v: `${champ.name} — Classement à l'issue du ${new Date(game.date).toLocaleDateString('fr-FR')}`, bold: true }],
+    [{ v: `${gamesUpToDate.length} partie(s) comptabilisée(s) sur ${champ.totalGames}` }],
+    null,
+    [
+      { v: 'Rang', header: true }, { v: 'Joueur', header: true },
+      { v: 'Parties', header: true }, { v: 'Victoires', header: true },
+      { v: '2ème', header: true }, { v: '3ème', header: true },
+      { v: 'Kills', header: true }, { v: 'Pts bonus kill', header: true },
+      { v: 'Total pts', header: true }, { v: 'Gains (€)', header: true },
+    ],
     ...standings.map((p, idx) => [
-      idx + 1,
-      p.name,
-      p.gamesPlayed,
-      p.wins,
-      p.secondPlaces,
-      p.thirdPlaces,
-      p.kills,
-      p.totalBonusPoints || 0,
-      p.totalPoints,
-      p.totalEarnings,
+      { v: idx + 1, type: 'Number', bold: true },
+      { v: p.name, bold: idx < 3 },
+      { v: p.gamesPlayed, type: 'Number' },
+      { v: p.wins, type: 'Number' },
+      { v: p.secondPlaces, type: 'Number' },
+      { v: p.thirdPlaces, type: 'Number' },
+      { v: p.kills, type: 'Number' },
+      { v: p.totalBonusPoints || 0, type: 'Number' },
+      { v: p.totalPoints, type: 'Number', bold: true },
+      { v: p.totalEarnings, type: 'Number', bold: true },
     ]),
   ];
 
-  const ws2 = XLSX.utils.aoa_to_sheet(standingsRows);
-  ws2['!cols'] = [
-    { wch: 6 }, { wch: 16 }, { wch: 8 }, { wch: 10 },
-    { wch: 6 }, { wch: 6 }, { wch: 6 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
-  ];
-
-  XLSX.utils.book_append_sheet(wb, ws2, 'Classement');
-
-  // ── SHEET 3 : Top Killers ─────────────────────────────────────────────────
-
-  const killers = [...standings]
-    .filter(p => p.kills > 0)
-    .sort((a, b) => b.kills - a.kills);
-
+  // ── Sheet 3: Top Killers ─────────────────────────────────────────────────
+  const killers = [...standings].filter(p => p.kills > 0).sort((a, b) => b.kills - a.kills);
   const killersRows = [
-    [`${champ.name} — Top Killers`],
-    [],
-    ['Rang', 'Joueur', 'Total kills', 'Kills / partie', 'Pts bonus kill total'],
+    [{ v: `${champ.name} — Top Killers`, bold: true }],
+    null,
+    [
+      { v: 'Rang', header: true }, { v: 'Joueur', header: true },
+      { v: 'Total kills', header: true }, { v: 'Kills / partie', header: true },
+      { v: 'Pts bonus kill', header: true },
+    ],
     ...killers.map((p, idx) => [
-      idx + 1,
-      p.name,
-      p.kills,
-      (p.kills / Math.max(p.gamesPlayed, 1)).toFixed(2),
-      p.totalBonusPoints || 0,
+      { v: idx + 1, type: 'Number', bold: idx === 0 },
+      { v: p.name, bold: idx === 0 },
+      { v: p.kills, type: 'Number', bold: idx === 0 },
+      { v: parseFloat((p.kills / Math.max(p.gamesPlayed, 1)).toFixed(2)), type: 'Number' },
+      { v: p.totalBonusPoints || 0, type: 'Number' },
     ]),
   ];
 
-  const ws3 = XLSX.utils.aoa_to_sheet(killersRows);
-  ws3['!cols'] = [
-    { wch: 6 }, { wch: 16 }, { wch: 12 }, { wch: 14 }, { wch: 20 },
-  ];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:x="urn:schemas-microsoft-com:office:excel">
+  <Styles>
+    <Style ss:ID="s1"/>
+    <Style ss:ID="s2"><Font ss:Bold="1"/></Style>
+    <Style ss:ID="sH">
+      <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+      <Interior ss:Color="#1A472A" ss:Pattern="Solid"/>
+    </Style>
+  </Styles>
+  ${buildSheet('Partie', partieRows)}
+  ${buildSheet('Classement', classementRows)}
+  ${buildSheet('Top Killers', killersRows)}
+</Workbook>`;
 
-  XLSX.utils.book_append_sheet(wb, ws3, 'Top Killers');
-
-  // ── Export ────────────────────────────────────────────────────────────────
-
-  const fileName = `PokerTeam78_Partie_${game.date}_${game.organizer.replace(/\s+/g, '_')}.xlsx`;
-  XLSX.writeFile(wb, fileName);
+  const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `PokerTeam78_Partie_${game.date}_${game.organizer.replace(/\s+/g, '_')}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

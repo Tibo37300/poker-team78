@@ -117,6 +117,14 @@ VITE_FIREBASE_APP_ID=...
 - [x] GameForm : classement et recaves via listes déroulantes (UX mobile)
 - [x] Barre d'onglets championship scrollable horizontalement sur mobile (scrollbar cachée)
 - [x] Modification partie validée protégée par mot de passe admin
+- [x] Export Excel (XML SpreadsheetML, 3 onglets : Partie, Classement, Top Killers) sans dépendance npm
+- [x] Export PDF (HTML stylisé, ouverture dans nouvel onglet + impression) sans dépendance npm
+- [x] Modale choix export (Excel / PDF) sur bouton "Get File" dans GameDetailView
+- [x] Classement export = snapshot à la date de la partie exportée (pas le classement actuel)
+- [x] Logo PWA personnalisé (public/logo.png + manifest.json + meta apple-touch-icon)
+- [x] PlayerDetailView : histogramme horizontal kills/partie joueur vs moy. championnat (rouge foncé)
+- [x] PlayerDetailView : histogramme vertical recaves/partie joueur vs moy. championnat (bleu)
+- [x] Valeurs affichées directement sur les barres (LabelList) + tooltip clair (itemStyle blanc)
 
 ## Détails techniques récents
 
@@ -135,6 +143,21 @@ VITE_FIREBASE_APP_ID=...
 - Filtre les joueurs avec kills > 0, triés par kills desc
 - Top killer : fond rouge + icône 💀
 - Affiche : kills totaux, ratio /partie, bonus pts kill (en jaune)
+
+### Export (exportExcel.js / exportPdf.js)
+- Pas de package npm (xlsx supprimé — incompatible Vite 8/rolldown)
+- Excel : format XML SpreadsheetML 2003, téléchargement via Blob
+- PDF : HTML stylisé ouvert dans un nouvel onglet + `window.print()` automatique
+- Standings snapshot : `champ.games.filter(g => g.validated && g.date <= game.date)`
+
+### PlayerDetailView — graphiques comparaison
+- `playerAvgKills` = `playerStanding.kills / gamesPlayed`
+- `champAvgKills` = moyenne de (kills/gamesPlayed) sur tous les joueurs du classement
+- `playerAvgRebuys` = moyenne des recaves sur les parties jouées (depuis `history`)
+- `champAvgRebuys` = total recaves toutes parties / total participations
+- Composants Recharts utilisés : `BarChart`, `Bar`, `Cell`, `LabelList`
+- Horizontal (kills) : `layout="vertical"` sur BarChart
+- Noms complets utilisés (pas de `.split(' ')[0]`) pour les noms composés
 
 ## Décisions de conception
 - Pas de système d'authentification Firebase Auth → mot de passe simple géré dans l'app

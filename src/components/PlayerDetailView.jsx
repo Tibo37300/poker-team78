@@ -67,11 +67,11 @@ export default function PlayerDetailView() {
   const champAvgRebuys = totalChampParticipations > 0 ? totalChampRebuys / totalChampParticipations : 0;
 
   const killsChartData = [
-    { label: playerName.split(' ')[0], value: parseFloat(playerAvgKills.toFixed(2)) },
+    { label: playerName, value: parseFloat(playerAvgKills.toFixed(2)) },
     { label: 'Moy. champ.', value: parseFloat(champAvgKills.toFixed(2)) },
   ];
   const rebuysChartData = [
-    { label: playerName.split(' ')[0], value: parseFloat(playerAvgRebuys.toFixed(2)) },
+    { label: playerName, value: parseFloat(playerAvgRebuys.toFixed(2)) },
     { label: 'Moy. champ.', value: parseFloat(champAvgRebuys.toFixed(2)) },
   ];
   const maxKills = Math.max(playerAvgKills, champAvgKills, 0.1) * 1.3;
@@ -288,7 +288,7 @@ export default function PlayerDetailView() {
           <div className="flex justify-center gap-4 mt-2">
             <span className="flex items-center gap-1.5 text-xs text-gray-400">
               <span className="inline-block w-3 h-3 rounded-sm bg-[#991b1b]" />
-              {playerName.split(' ')[0]}
+              {playerName}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-gray-400">
               <span className="inline-block w-3 h-3 rounded-sm bg-[#6b7280]" />

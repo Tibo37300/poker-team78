@@ -445,7 +445,7 @@ function PlayerCard({ player, idx, totalPresent, allPresentNames, onUpdate, onRe
                 onChange={e => onUpdate('rebuys', e.target.value)}
                 className="w-full bg-[#0f1923] text-white rounded-lg px-2 py-2 text-sm text-center outline-none border border-white/10 focus:border-green-400 transition-colors"
               >
-                {Array.from({ length: 11 }, (_, i) => i).map(n => (
+                {Array.from({ length: 21 }, (_, i) => i).map(n => (
                   <option key={n} value={n}>{n}</option>
                 ))}
               </select>

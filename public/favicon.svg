@@ -1,60 +1,88 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#1a1a1a"/>
-      <stop offset="100%" stop-color="#060606"/>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1e1e"/>
+      <stop offset="100%" stop-color="#080808"/>
     </radialGradient>
     <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffe566"/>
-      <stop offset="45%" stop-color="#f6c90e"/>
-      <stop offset="100%" stop-color="#b8860b"/>
+      <stop offset="0%" stop-color="#ffe97a"/>
+      <stop offset="40%" stop-color="#f6c90e"/>
+      <stop offset="100%" stop-color="#a86c00"/>
     </linearGradient>
     <linearGradient id="gold2" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fff0a0"/>
+      <stop offset="0%" stop-color="#fff4b0"/>
       <stop offset="50%" stop-color="#f6c90e"/>
-      <stop offset="100%" stop-color="#8B6914"/>
-    </linearGradient>
-    <linearGradient id="red" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#dd0000"/>
-      <stop offset="100%" stop-color="#6a0000"/>
+      <stop offset="100%" stop-color="#7a4e00"/>
     </linearGradient>
     <linearGradient id="card" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#ffffff"/>
-      <stop offset="100%" stop-color="#e0e0e0"/>
+      <stop offset="100%" stop-color="#ececec"/>
     </linearGradient>
     <filter id="sh">
-      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.9"/>
+    </filter>
+    <filter id="cardsh">
+      <feDropShadow dx="3" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.7"/>
     </filter>
   </defs>
-  <rect width="512" height="512" rx="80" fill="url(#bgGrad)"/>
-  <rect x="6" y="6" width="500" height="500" rx="76" fill="none" stroke="url(#gold)" stroke-width="5"/>
-  <!-- Cards fan -->
-  <g transform="translate(108,158) rotate(-30)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#b00" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#b00" text-anchor="middle">&#9829;</text></g>
-  <g transform="translate(174,128) rotate(-15)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9824;</text></g>
-  <g transform="translate(256,118)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9827;</text></g>
-  <g transform="translate(338,128) rotate(15)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#b00" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#b00" text-anchor="middle">&#9830;</text></g>
-  <g transform="translate(404,158) rotate(30)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9824;</text></g>
-  <!-- Chips left -->
-  <g transform="translate(68,340)"><ellipse cx="0" cy="-48" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-36" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-24" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-12" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="0" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/></g>
-  <g transform="translate(110,352)"><ellipse cx="0" cy="-26" rx="30" ry="9" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="-14" rx="30" ry="9" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="0" rx="30" ry="9" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/></g>
-  <!-- Chips right -->
-  <g transform="translate(444,340)"><ellipse cx="0" cy="-48" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-36" rx="34" ry="10" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-24" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-12" rx="34" ry="10" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="0" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/></g>
-  <g transform="translate(402,352)"><ellipse cx="0" cy="-26" rx="30" ry="9" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="-14" rx="30" ry="9" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="0" rx="30" ry="9" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/></g>
-  <!-- Trophy -->
-  <g transform="translate(256,290)" filter="url(#sh)">
-    <rect x="-52" y="90" width="104" height="13" rx="4" fill="url(#gold2)"/>
-    <rect x="-36" y="78" width="72" height="16" rx="3" fill="url(#gold)"/>
-    <rect x="-13" y="50" width="26" height="32" fill="url(#gold)"/>
-    <path d="M-66,-70 Q-76,8 -54,50 L54,50 Q76,8 66,-70 Z" fill="url(#gold2)"/>
-    <path d="M-54,-65 Q-62,8 -42,46 L42,46 Q62,8 54,-65 Z" fill="url(#gold)" opacity="0.5"/>
-    <path d="M-66,-40 Q-102,-40 -102,2 Q-102,40 -66,40" fill="none" stroke="url(#gold2)" stroke-width="15" stroke-linecap="round"/>
-    <path d="M66,-40 Q102,-40 102,2 Q102,40 66,40" fill="none" stroke="url(#gold2)" stroke-width="15" stroke-linecap="round"/>
-    <text x="1" y="-26" font-size="15" font-family="Arial Black,sans-serif" font-weight="900" fill="#3a1500" text-anchor="middle" opacity="0.7">Team 78</text>
-    <text x="0" y="-28" font-size="15" font-family="Arial Black,sans-serif" font-weight="900" fill="white" text-anchor="middle">Team 78</text>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" fill="url(#bg)"/>
+  <!-- Gold border -->
+  <rect x="8" y="8" width="496" height="496" rx="84" fill="none" stroke="url(#gold)" stroke-width="6"/>
+
+  <!-- ── 2 CARDS behind trophy ── -->
+  <!-- Left card (As de coeur) rotated -22deg -->
+  <g transform="translate(182,260) rotate(-22)" filter="url(#cardsh)">
+    <rect x="-52" y="-80" width="104" height="150" rx="10" fill="url(#card)" stroke="#ccc" stroke-width="1.5"/>
+    <!-- Top left A -->
+    <text x="-36" y="-54" font-size="36" font-family="Georgia,serif" fill="#cc0000" font-weight="bold">A</text>
+    <text x="-36" y="-18" font-size="30" font-family="Georgia,serif" fill="#cc0000">&#9829;</text>
+    <!-- Center big suit -->
+    <text x="0" y="30" font-size="70" font-family="Georgia,serif" fill="#cc0000" text-anchor="middle">&#9829;</text>
   </g>
-  <!-- Red banner -->
-  <path d="M22,398 L490,398 L502,440 L464,468 L48,468 L10,440 Z" fill="url(#red)" stroke="url(#gold)" stroke-width="3"/>
-  <text x="256" y="447" font-size="58" font-family="Arial Black,Impact,sans-serif" font-weight="900" fill="url(#gold)" text-anchor="middle" stroke="#000" stroke-width="2" paint-order="stroke">POKER</text>
-  <rect x="68" y="453" width="376" height="26" fill="#050505" opacity="0.55"/>
-  <text x="256" y="472" font-size="19" font-family="Arial,sans-serif" font-weight="700" fill="#f6c90e" text-anchor="middle" letter-spacing="5">MANAGEMENT</text>
+
+  <!-- Right card (As de pique) rotated +22deg -->
+  <g transform="translate(330,260) rotate(22)" filter="url(#cardsh)">
+    <rect x="-52" y="-80" width="104" height="150" rx="10" fill="url(#card)" stroke="#ccc" stroke-width="1.5"/>
+    <!-- Top left A -->
+    <text x="-36" y="-54" font-size="36" font-family="Georgia,serif" fill="#111" font-weight="bold">A</text>
+    <text x="-36" y="-18" font-size="30" font-family="Georgia,serif" fill="#111">&#9824;</text>
+    <!-- Center big suit -->
+    <text x="0" y="30" font-size="70" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9824;</text>
+  </g>
+
+  <!-- ── CHIP STACK (center-left of trophy base) ── -->
+  <g transform="translate(118,390)">
+    <ellipse cx="0" cy="0"   rx="38" ry="12" fill="#b00"    stroke="#fff" stroke-width="2" stroke-dasharray="7,5"/>
+    <ellipse cx="0" cy="-16" rx="38" ry="12" fill="#111"    stroke="#fff" stroke-width="2" stroke-dasharray="7,5"/>
+    <ellipse cx="0" cy="-32" rx="38" ry="12" fill="#b00"    stroke="#fff" stroke-width="2" stroke-dasharray="7,5"/>
+    <ellipse cx="0" cy="-48" rx="38" ry="12" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="7,5"/>
+    <ellipse cx="0" cy="-64" rx="38" ry="12" fill="#111"    stroke="#fff" stroke-width="2" stroke-dasharray="7,5"/>
+    <ellipse cx="0" cy="-80" rx="38" ry="12" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="7,5"/>
+  </g>
+
+  <!-- ── TROPHY (front, center) ── -->
+  <g transform="translate(256,270)" filter="url(#sh)">
+    <!-- Base plate -->
+    <rect x="-55" y="102" width="110" height="15" rx="5" fill="url(#gold2)"/>
+    <!-- Stem connector -->
+    <rect x="-40" y="88" width="80" height="18" rx="4" fill="url(#gold)"/>
+    <!-- Stem -->
+    <rect x="-14" y="55" width="28" height="38" fill="url(#gold)"/>
+    <!-- Cup body -->
+    <path d="M-72,-78 Q-84,10 -58,55 L58,55 Q84,10 72,-78 Z" fill="url(#gold2)"/>
+    <!-- Cup shine -->
+    <path d="M-58,-72 Q-68,10 -44,51 L44,51 Q68,10 58,-72 Z" fill="url(#gold)" opacity="0.45"/>
+    <!-- Handles -->
+    <path d="M-72,-44 Q-112,-44 -112,4 Q-112,46 -72,46" fill="none" stroke="url(#gold2)" stroke-width="17" stroke-linecap="round"/>
+    <path d="M72,-44 Q112,-44 112,4 Q112,46 72,46"   fill="none" stroke="url(#gold2)" stroke-width="17" stroke-linecap="round"/>
+    <!-- Team 78 label shadow -->
+    <text x="1" y="-22" font-size="22" font-family="Arial Black,sans-serif" font-weight="900"
+      fill="#3a1500" text-anchor="middle" opacity="0.5">Team 78</text>
+    <!-- Team 78 label -->
+    <text x="0" y="-24" font-size="22" font-family="Arial Black,sans-serif" font-weight="900"
+      fill="white" text-anchor="middle">Team 78</text>
+  </g>
+
 </svg>

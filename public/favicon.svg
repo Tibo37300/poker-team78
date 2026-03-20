@@ -1,11 +1,60 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="100" fill="#0f1923"/>
-  <circle cx="256" cy="256" r="215" fill="#1a472a"/>
-  <circle cx="256" cy="256" r="200" fill="#1d5230"/>
-  <circle cx="256" cy="256" r="200" fill="none" stroke="#f6c90e" stroke-width="8" opacity="0.6"/>
-  <text x="138" y="210" font-size="130" font-family="Georgia,serif" fill="white" text-anchor="middle">&#9824;</text>
-  <text x="374" y="210" font-size="130" font-family="Georgia,serif" fill="#e53e3e" text-anchor="middle">&#9829;</text>
-  <text x="138" y="390" font-size="130" font-family="Georgia,serif" fill="#e53e3e" text-anchor="middle">&#9830;</text>
-  <text x="374" y="390" font-size="130" font-family="Georgia,serif" fill="white" text-anchor="middle">&#9827;</text>
-  <text x="256" y="320" font-size="140" font-family="Georgia,serif" fill="#f6c90e" text-anchor="middle">&#9818;</text>
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#060606"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffe566"/>
+      <stop offset="45%" stop-color="#f6c90e"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+    <linearGradient id="gold2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff0a0"/>
+      <stop offset="50%" stop-color="#f6c90e"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dd0000"/>
+      <stop offset="100%" stop-color="#6a0000"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0e0e0"/>
+    </linearGradient>
+    <filter id="sh">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="80" fill="url(#bgGrad)"/>
+  <rect x="6" y="6" width="500" height="500" rx="76" fill="none" stroke="url(#gold)" stroke-width="5"/>
+  <!-- Cards fan -->
+  <g transform="translate(108,158) rotate(-30)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#b00" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#b00" text-anchor="middle">&#9829;</text></g>
+  <g transform="translate(174,128) rotate(-15)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9824;</text></g>
+  <g transform="translate(256,118)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9827;</text></g>
+  <g transform="translate(338,128) rotate(15)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#b00" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#b00" text-anchor="middle">&#9830;</text></g>
+  <g transform="translate(404,158) rotate(30)"><rect x="-30" y="-46" width="60" height="84" rx="5" fill="url(#card)" stroke="#bbb" stroke-width="1"/><text x="0" y="-26" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle">A</text><text x="0" y="8" font-size="26" font-family="Georgia,serif" fill="#111" text-anchor="middle">&#9824;</text></g>
+  <!-- Chips left -->
+  <g transform="translate(68,340)"><ellipse cx="0" cy="-48" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-36" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-24" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-12" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="0" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/></g>
+  <g transform="translate(110,352)"><ellipse cx="0" cy="-26" rx="30" ry="9" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="-14" rx="30" ry="9" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="0" rx="30" ry="9" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/></g>
+  <!-- Chips right -->
+  <g transform="translate(444,340)"><ellipse cx="0" cy="-48" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-36" rx="34" ry="10" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-24" rx="34" ry="10" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="-12" rx="34" ry="10" fill="#1a6b1a" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/><ellipse cx="0" cy="0" rx="34" ry="10" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="6,5"/></g>
+  <g transform="translate(402,352)"><ellipse cx="0" cy="-26" rx="30" ry="9" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="-14" rx="30" ry="9" fill="#111" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/><ellipse cx="0" cy="0" rx="30" ry="9" fill="#b00" stroke="#fff" stroke-width="2" stroke-dasharray="5,4"/></g>
+  <!-- Trophy -->
+  <g transform="translate(256,290)" filter="url(#sh)">
+    <rect x="-52" y="90" width="104" height="13" rx="4" fill="url(#gold2)"/>
+    <rect x="-36" y="78" width="72" height="16" rx="3" fill="url(#gold)"/>
+    <rect x="-13" y="50" width="26" height="32" fill="url(#gold)"/>
+    <path d="M-66,-70 Q-76,8 -54,50 L54,50 Q76,8 66,-70 Z" fill="url(#gold2)"/>
+    <path d="M-54,-65 Q-62,8 -42,46 L42,46 Q62,8 54,-65 Z" fill="url(#gold)" opacity="0.5"/>
+    <path d="M-66,-40 Q-102,-40 -102,2 Q-102,40 -66,40" fill="none" stroke="url(#gold2)" stroke-width="15" stroke-linecap="round"/>
+    <path d="M66,-40 Q102,-40 102,2 Q102,40 66,40" fill="none" stroke="url(#gold2)" stroke-width="15" stroke-linecap="round"/>
+    <text x="1" y="-26" font-size="15" font-family="Arial Black,sans-serif" font-weight="900" fill="#3a1500" text-anchor="middle" opacity="0.7">Team 78</text>
+    <text x="0" y="-28" font-size="15" font-family="Arial Black,sans-serif" font-weight="900" fill="white" text-anchor="middle">Team 78</text>
+  </g>
+  <!-- Red banner -->
+  <path d="M22,398 L490,398 L502,440 L464,468 L48,468 L10,440 Z" fill="url(#red)" stroke="url(#gold)" stroke-width="3"/>
+  <text x="256" y="447" font-size="58" font-family="Arial Black,Impact,sans-serif" font-weight="900" fill="url(#gold)" text-anchor="middle" stroke="#000" stroke-width="2" paint-order="stroke">POKER</text>
+  <rect x="68" y="453" width="376" height="26" fill="#050505" opacity="0.55"/>
+  <text x="256" y="472" font-size="19" font-family="Arial,sans-serif" font-weight="700" fill="#f6c90e" text-anchor="middle" letter-spacing="5">MANAGEMENT</text>
 </svg>

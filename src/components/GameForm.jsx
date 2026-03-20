@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { ArrowLeft, Plus, Trash2, UserPlus, Trophy, Sword, RefreshCw, UserX } from 'lucide-react';
 
-function makePlayer(name, rank) {
-  return { name, rank, rebuys: 0, kills: 0, killedPlayers: [], absent: false };
+function makePlayer(name, rank, guest = false) {
+  return { name, rank, rebuys: 0, kills: 0, killedPlayers: [], absent: false, guest };
 }
 
 export default function GameForm({ editMode = false }) {
@@ -14,10 +14,16 @@ export default function GameForm({ editMode = false }) {
   const editGame = editMode ? champ?.games.find(g => g.id === state.selectedGameId) : null;
 
   const initialPlayers = editGame
-    ? (champ?.players || []).map(name => {
-        const existing = editGame.players.find(p => p.name === name);
-        return existing ? { ...existing, absent: false } : { ...makePlayer(name, 1), absent: true };
-      })
+    ? [
+        ...(champ?.players || []).map(name => {
+          const existing = editGame.players.find(p => p.name === name);
+          return existing ? { ...existing, absent: false } : { ...makePlayer(name, 1), absent: true };
+        }),
+        // Joueurs invités (non inscrits au championnat)
+        ...editGame.players
+          .filter(p => !champ?.players?.includes(p.name))
+          .map(p => ({ ...p, absent: false, guest: p.guest ?? true })),
+      ]
     : champ?.players?.length > 0
       ? champ.players.map((name, i) => makePlayer(name, i + 1))
       : [makePlayer('', 1)];
@@ -74,7 +80,7 @@ export default function GameForm({ editMode = false }) {
   const addPlayer = () => {
     setForm(f => ({
       ...f,
-      players: [...f.players, makePlayer('', f.players.filter(p => !p.absent).length + 1)],
+      players: [...f.players, makePlayer('', f.players.filter(p => !p.absent).length + 1, true)],
     }));
   };
 
@@ -102,6 +108,7 @@ export default function GameForm({ editMode = false }) {
         rebuys: Number(p.rebuys),
         kills: Number(p.kills),
         killedPlayers: p.killedPlayers,
+        ...(p.guest ? { guest: true } : {}),
       })),
       prizes: {
         first: Number(form.prizes.first),
@@ -370,11 +377,18 @@ function PlayerCard({ player, idx, totalPresent, allPresentNames, onUpdate, onRe
           <span className="text-green-400 font-bold text-sm">#{idx + 1}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-white font-medium truncate">
-            {player.name || <span className="text-gray-500">Joueur {idx + 1}</span>}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-white font-medium truncate">
+              {player.name || <span className="text-gray-500">Joueur {idx + 1}</span>}
+            </p>
+            {player.guest && (
+              <span className="flex-shrink-0 text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-full">
+                Invité
+              </span>
+            )}
+          </div>
           <p className="text-xs text-gray-500">
-            {player.rank}ème · {player.rebuys} recave(s) · {player.kills} kill(s)
+            {!player.guest && `${player.rank}ème · `}{player.rebuys} recave(s) · {player.kills} kill(s)
           </p>
         </div>
         <button
@@ -409,19 +423,21 @@ function PlayerCard({ player, idx, totalPresent, allPresentNames, onUpdate, onRe
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-2">
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">Classement</label>
-              <select
-                value={player.rank}
-                onChange={e => onUpdate('rank', e.target.value)}
-                className="w-full bg-[#0f1923] text-white rounded-lg px-2 py-2 text-sm text-center outline-none border border-white/10 focus:border-green-400 transition-colors"
-              >
-                {Array.from({ length: totalPresent }, (_, i) => i + 1).map(n => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
-            </div>
+          <div className={`grid gap-2 ${player.guest ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            {!player.guest && (
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Classement</label>
+                <select
+                  value={player.rank}
+                  onChange={e => onUpdate('rank', e.target.value)}
+                  className="w-full bg-[#0f1923] text-white rounded-lg px-2 py-2 text-sm text-center outline-none border border-white/10 focus:border-green-400 transition-colors"
+                >
+                  {Array.from({ length: totalPresent }, (_, i) => i + 1).map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="text-xs text-gray-500 mb-1 block">Recaves</label>
               <select

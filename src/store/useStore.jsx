@@ -44,6 +44,7 @@ export function computeStandings(games, dropCount = null) {
 
   validatedGames.forEach(game => {
     game.players.forEach(player => {
+      if (player.guest) return; // invités exclus du championnat
       if (!playerMap[player.name]) {
         playerMap[player.name] = { name: player.name, gameResults: [] };
       }

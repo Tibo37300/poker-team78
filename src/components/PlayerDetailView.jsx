@@ -3,7 +3,8 @@ import { useStore } from '../store/useStore';
 import { ArrowLeft, TrendingUp, TrendingDown, Trophy, Sword, RefreshCw } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend, ReferenceLine
+  ResponsiveContainer, Legend, ReferenceLine,
+  BarChart, Bar, Cell, LabelList
 } from 'recharts';
 
 export default function PlayerDetailView() {
@@ -40,6 +41,41 @@ export default function PlayerDetailView() {
   ];
 
   const totalGames = champ.games.filter(g => g.validated).length;
+
+  // Kills & Rebuys stats
+  const gamesParticipated = history.filter(g => g.participated);
+  const playerAvgKills = playerStanding
+    ? playerStanding.kills / Math.max(playerStanding.gamesPlayed, 1)
+    : 0;
+  const playerAvgRebuys = gamesParticipated.length > 0
+    ? gamesParticipated.reduce((s, g) => s + (g.rebuys || 0), 0) / gamesParticipated.length
+    : 0;
+
+  const champAvgKills = standings.length > 0
+    ? standings.reduce((s, p) => s + p.kills / Math.max(p.gamesPlayed, 1), 0) / standings.length
+    : 0;
+
+  const validatedGames = champ.games.filter(g => g.validated);
+  let totalChampRebuys = 0;
+  let totalChampParticipations = 0;
+  validatedGames.forEach(g => {
+    g.players.forEach(p => {
+      totalChampRebuys += p.rebuys || 0;
+      totalChampParticipations++;
+    });
+  });
+  const champAvgRebuys = totalChampParticipations > 0 ? totalChampRebuys / totalChampParticipations : 0;
+
+  const killsChartData = [
+    { label: playerName.split(' ')[0], value: parseFloat(playerAvgKills.toFixed(2)) },
+    { label: 'Moy. champ.', value: parseFloat(champAvgKills.toFixed(2)) },
+  ];
+  const rebuysChartData = [
+    { label: playerName.split(' ')[0], value: parseFloat(playerAvgRebuys.toFixed(2)) },
+    { label: 'Moy. champ.', value: parseFloat(champAvgRebuys.toFixed(2)) },
+  ];
+  const maxKills = Math.max(playerAvgKills, champAvgKills, 0.1) * 1.3;
+  const maxRebuys = Math.max(playerAvgRebuys, champAvgRebuys, 0.1) * 1.3;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f1923] to-[#1a2d1e]">
@@ -162,6 +198,104 @@ export default function PlayerDetailView() {
             </ResponsiveContainer>
           </div>
         )}
+
+        {/* Kills & Rebuys comparison charts */}
+        <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl p-4">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+            Comparaison vs championnat
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Kills — horizontal bar chart */}
+            <div>
+              <p className="text-xs text-gray-500 text-center mb-1">Kills / partie</p>
+              <ResponsiveContainer width="100%" height={90}>
+                <BarChart
+                  data={killsChartData}
+                  layout="vertical"
+                  margin={{ top: 4, right: 28, left: 0, bottom: 0 }}
+                >
+                  <XAxis
+                    type="number"
+                    domain={[0, maxKills]}
+                    tick={{ fill: '#6b7280', fontSize: 9 }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={v => v.toFixed(1)}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="label"
+                    tick={{ fill: '#9ca3af', fontSize: 9 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={55}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1e2d3d', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#e5e7eb', fontSize: '11px' }}
+                    labelStyle={{ color: '#e5e7eb' }}
+                    itemStyle={{ color: '#e5e7eb' }}
+                    formatter={v => [`${v} kills/partie`]}
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                  />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                    <LabelList dataKey="value" position="right" style={{ fill: '#e5e7eb', fontSize: 10, fontWeight: 600 }} formatter={v => v.toFixed(2)} />
+                    <Cell fill="#991b1b" />
+                    <Cell fill="#6b7280" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Rebuys — vertical bar chart */}
+            <div>
+              <p className="text-xs text-gray-500 text-center mb-1">Recaves / partie</p>
+              <ResponsiveContainer width="100%" height={90}>
+                <BarChart
+                  data={rebuysChartData}
+                  margin={{ top: 4, right: 4, left: -18, bottom: 0 }}
+                >
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: '#9ca3af', fontSize: 9 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    domain={[0, maxRebuys]}
+                    tick={{ fill: '#6b7280', fontSize: 9 }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={v => v.toFixed(1)}
+                  />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#1e2d3d', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#e5e7eb', fontSize: '11px' }}
+                    labelStyle={{ color: '#e5e7eb' }}
+                    itemStyle={{ color: '#e5e7eb' }}
+                    formatter={v => [`${v} recaves/partie`]}
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                  />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={28}>
+                    <LabelList dataKey="value" position="top" style={{ fill: '#e5e7eb', fontSize: 10, fontWeight: 600 }} formatter={v => v.toFixed(2)} />
+                    <Cell fill="#1d4ed8" />
+                    <Cell fill="#6b7280" />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex justify-center gap-4 mt-2">
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="inline-block w-3 h-3 rounded-sm bg-[#991b1b]" />
+              {playerName.split(' ')[0]}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="inline-block w-3 h-3 rounded-sm bg-[#6b7280]" />
+              Moy. championnat
+            </span>
+          </div>
+        </div>
 
         {/* Games history table */}
         <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl overflow-hidden">

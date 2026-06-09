@@ -48,6 +48,7 @@ VITE_FIREBASE_PROJECT_ID=...
 VITE_FIREBASE_STORAGE_BUCKET=...
 VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
+VITE_FOUNDER_PASSWORD=...   # mot de passe fondateur pour la vue des mots de passe admin
 ```
 
 ## Structure Firestore
@@ -77,7 +78,7 @@ VITE_FIREBASE_APP_ID=...
 3. **Départage à égalité** : victoires → podiums → total kills sur l'année
 
 ## Onglet Cagnotte
-- Cagnotte par partie = `prizePoolPerPlayer × nb joueurs présents`
+- Cagnotte par partie = `prizePoolPerPlayer × nb joueurs inscrits au championnat présents` (invités exclus)
 - Cagnotte totale = cumul de toutes les parties validées
 - Répartition définie à la création : `cagnottePercent1/2/3` (doit totaliser 100%)
 - Affichage : courbe évolution + montants promis au top 3 du classement actuel
@@ -86,7 +87,14 @@ VITE_FIREBASE_APP_ID=...
 - Mot de passe défini à la création du championnat (stocké en clair dans Firestore)
 - Session admin stockée dans `sessionStorage` avec la clé `admin_champ_{id}`
 - Actions protégées : créer une partie, valider une partie, supprimer une partie
+- **Suppression d'un championnat** : protégée par le mot de passe admin du championnat (PasswordModal)
 - Les autres utilisateurs ont accès en **lecture seule**
+
+## Accès fondateur
+- Icône clé 🔑 discrète dans le footer de HomeView
+- Protégée par `VITE_FOUNDER_PASSWORD` (variable d'environnement, définie dans .env et sur Vercel)
+- Affiche la liste de tous les championnats avec leurs mots de passe admin (masqués par défaut, toggle œil)
+- `PasswordModal` accepte des props optionnels `title` et `description` pour personnaliser le message
 
 ## Firebase
 - Projet : **PokerTeam78** (pokerteam78-a1231)
@@ -125,6 +133,9 @@ VITE_FIREBASE_APP_ID=...
 - [x] PlayerDetailView : histogramme horizontal kills/partie joueur vs moy. championnat (rouge foncé)
 - [x] PlayerDetailView : histogramme vertical recaves/partie joueur vs moy. championnat (bleu)
 - [x] Valeurs affichées directement sur les barres (LabelList) + tooltip clair (itemStyle blanc)
+- [x] Suppression championnat protégée par mot de passe admin (PasswordModal)
+- [x] Accès fondateur : vue mots de passe admin via icône clé footer (protégée par VITE_FOUNDER_PASSWORD)
+- [x] Cagnotte par partie : invités exclus du calcul (seuls les inscrits au championnat contribuent)
 
 ## Détails techniques récents
 

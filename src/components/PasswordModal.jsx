@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Lock, X, Eye, EyeOff } from 'lucide-react';
 
-export default function PasswordModal({ onSuccess, onCancel }) {
+export default function PasswordModal({ onSuccess, onCancel, title, description }) {
   const [input, setInput] = useState('');
   const [error, setError] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
@@ -33,9 +33,9 @@ export default function PasswordModal({ onSuccess, onCancel }) {
           </div>
         </div>
 
-        <h2 className="text-white font-bold text-lg text-center mb-1">Accès administrateur</h2>
+        <h2 className="text-white font-bold text-lg text-center mb-1">{title || 'Accès administrateur'}</h2>
         <p className="text-gray-400 text-sm text-center mb-5">
-          Entrez le mot de passe pour accéder à cette fonctionnalité
+          {description || 'Entrez le mot de passe pour accéder à cette fonctionnalité'}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-3">

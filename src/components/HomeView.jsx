@@ -1,16 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Trophy, Plus, ChevronRight, Trash2, Calendar, Users } from 'lucide-react';
+import { Trophy, Plus, ChevronRight, Trash2, Calendar, Users, Key, Eye, EyeOff, X } from 'lucide-react';
+import PasswordModal from './PasswordModal';
+
+const FOUNDER_PASSWORD = import.meta.env.VITE_FOUNDER_PASSWORD;
 
 export default function HomeView() {
   const { state, dispatch } = useStore();
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [founderAuth, setFounderAuth] = useState(false);
+  const [showFounderPrompt, setShowFounderPrompt] = useState(false);
+  const [showFounderPasswords, setShowFounderPasswords] = useState(false);
+  const [revealedIds, setRevealedIds] = useState({});
 
-  const deleteChampionship = (id, e) => {
+  const handleDeleteClick = (champ, e) => {
     e.stopPropagation();
-    if (confirm('Supprimer ce championnat ?')) {
-      dispatch({ type: 'DELETE_CHAMPIONSHIP', id });
-    }
+    setDeleteTarget({ id: champ.id, adminPassword: champ.adminPassword, name: champ.name });
   };
+
+  const handlePasswordSuccess = (input) => {
+    if (input === deleteTarget.adminPassword) {
+      dispatch({ type: 'DELETE_CHAMPIONSHIP', id: deleteTarget.id });
+      setDeleteTarget(null);
+      return true;
+    }
+    return false;
+  };
+
+  const handleFounderAuth = (input) => {
+    if (input === FOUNDER_PASSWORD) {
+      setFounderAuth(true);
+      setShowFounderPrompt(false);
+      setShowFounderPasswords(true);
+      return true;
+    }
+    return false;
+  };
+
+  const toggleReveal = (id) => setRevealedIds(prev => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f1923] to-[#1a2d1e] p-4">
@@ -78,7 +105,7 @@ export default function HomeView() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
-                      onClick={(e) => deleteChampionship(champ.id, e)}
+                      onClick={(e) => handleDeleteClick(champ, e)}
                       className="p-1.5 text-gray-600 hover:text-red-400 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -92,9 +119,70 @@ export default function HomeView() {
         </div>
       )}
       {/* Footer */}
-      <p className="text-center text-gray-600 text-xs mt-10 pb-4">
-        © 2026 Team78 by Thibaut MAS. Tous droits réservés.
-      </p>
+      <div className="flex items-center justify-center gap-2 mt-10 pb-4">
+        <p className="text-gray-600 text-xs">© 2026 Team78 by Thibaut MAS. Tous droits réservés.</p>
+        <button
+          onClick={() => founderAuth ? setShowFounderPasswords(true) : setShowFounderPrompt(true)}
+          className="text-gray-800 hover:text-gray-600 transition-colors"
+          title="Accès fondateur"
+        >
+          <Key className="w-3 h-3" />
+        </button>
+      </div>
+
+      {deleteTarget && (
+        <PasswordModal
+          title="Supprimer le championnat"
+          description={`Entrez le mot de passe admin pour confirmer la suppression de "${deleteTarget.name}"`}
+          onSuccess={handlePasswordSuccess}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {showFounderPrompt && (
+        <PasswordModal
+          title="Accès fondateur"
+          description="Entrez le mot de passe fondateur pour voir les mots de passe admin"
+          onSuccess={handleFounderAuth}
+          onCancel={() => setShowFounderPrompt(false)}
+        />
+      )}
+
+      {showFounderPasswords && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#1e2d3d] border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Key className="w-5 h-5 text-yellow-400" />
+                <h2 className="text-white font-bold text-lg">Mots de passe admin</h2>
+              </div>
+              <button onClick={() => setShowFounderPasswords(false)} className="text-gray-500 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto space-y-3 pr-1">
+              {state.championships.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-4">Aucun championnat</p>
+              ) : state.championships.map(champ => (
+                <div key={champ.id} className="bg-[#0f1923] rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-semibold truncate">{champ.name}</p>
+                    <p className="text-gray-400 text-xs font-mono mt-0.5">
+                      {revealedIds[champ.id] ? (champ.adminPassword || '—') : '••••••••'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => toggleReveal(champ.id)}
+                    className="text-gray-500 hover:text-yellow-400 transition-colors flex-shrink-0"
+                  >
+                    {revealedIds[champ.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

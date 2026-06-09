@@ -400,7 +400,7 @@ function CagnotteTab({ champ, standings, validatedGames, requireAdmin, dispatch 
   const chartData = [{ name: 'Début', cagnotte: 0 }];
   let cumulative = 0;
   sorted.forEach((game, idx) => {
-    cumulative += game.players.length * prizePerPlayer;
+    cumulative += game.players.filter(p => !p.guest).length * prizePerPlayer;
     chartData.push({ name: `P${idx + 1}`, cagnotte: cumulative });
   });
   const totalCagnotte = cumulative;

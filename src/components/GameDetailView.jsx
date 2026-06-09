@@ -137,7 +137,7 @@ export default function GameDetailView() {
           <div className="grid grid-cols-2 gap-3">
             <Stat label="Organisateur" value={game.organizer} />
             <Stat label="Joueurs" value={game.players.length} />
-            <Stat label="Cagnotte totale" value={`${game.players.length * (champ?.prizePoolPerPlayer || 0)}€`} />
+            <Stat label="Cagnotte totale" value={`${game.players.filter(p => !p.guest).length * (champ?.prizePoolPerPlayer || 0)}€`} />
             <Stat label="Top Killer" value={topKiller?.kills > 0 ? `${topKiller.name} (${topKiller.kills})` : '-'} />
           </div>
         </div>

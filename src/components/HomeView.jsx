@@ -123,7 +123,7 @@ export default function HomeView() {
         <p className="text-gray-600 text-xs">© 2026 Team78 by Thibaut MAS. Tous droits réservés.</p>
         <button
           onClick={() => founderAuth ? setShowFounderPasswords(true) : setShowFounderPrompt(true)}
-          className="text-gray-800 hover:text-gray-600 transition-colors"
+          className="text-gray-600 hover:text-gray-400 transition-colors"
           title="Accès fondateur"
         >
           <Key className="w-3 h-3" />

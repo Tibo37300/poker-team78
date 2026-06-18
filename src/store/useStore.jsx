@@ -8,14 +8,19 @@ import { db } from '../firebase';
 // ─── Point calculation helpers ────────────────────────────────────────────────
 
 function calculateGamePoints(players) {
-  const sorted = [...players].sort((a, b) => b.kills - a.kills);
-  const topKillerKills = sorted[0]?.kills || 0;
-  const secondKillerKills = sorted[1]?.kills || 0;
+  const sortedByKills = [...players].sort((a, b) => b.kills - a.kills);
+  const topKillerKills = sortedByKills[0]?.kills || 0;
+  const secondKillerKills = sortedByKills[1]?.kills || 0;
+
+  // Championship rank: guests are skipped, non-guests are re-ranked sequentially
+  const nonGuestsSorted = [...players].filter(p => !p.guest).sort((a, b) => a.rank - b.rank);
+  const champRankMap = {};
+  nonGuestsSorted.forEach((p, idx) => { champRankMap[p.name] = idx + 1; });
 
   return players.map(player => {
-    const rankPoints = Math.max(14 - player.rank, 0);
-    let bonusPoints = 0;
+    const rankPoints = player.guest ? 0 : Math.max(14 - champRankMap[player.name], 0);
 
+    let bonusPoints = 0;
     if (topKillerKills > 0 && player.kills === topKillerKills) {
       const topKillers = players.filter(p => p.kills === topKillerKills);
       bonusPoints = topKillers.length === 1 ? 2 : 1;

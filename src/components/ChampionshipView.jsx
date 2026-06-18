@@ -40,6 +40,7 @@ export default function ChampionshipView() {
   const champ = getCurrentChampionship();
   const [tab, setTab] = useState('standings');
   const [modal, setModal] = useState(null); // null | { action: fn }
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // null | gameId
   const [dropCount, setDropCount] = useState(null); // null = auto (règle 11 parties), 0/1/2 = simulation
 
   const { isAdmin, tryLogin, logout } = useAdminSession(champ);
@@ -72,11 +73,16 @@ export default function ChampionshipView() {
   };
 
   const deleteGame = (gameId) => {
-    requireAdmin(() => {
-      if (confirm('Supprimer cette partie ?')) {
-        dispatch({ type: 'DELETE_GAME', gameId });
-      }
-    });
+    setDeleteConfirm(gameId);
+  };
+
+  const handleDeletePasswordSuccess = (password) => {
+    if (password === champ.adminPassword) {
+      dispatch({ type: 'DELETE_GAME', gameId: deleteConfirm });
+      setDeleteConfirm(null);
+      return true;
+    }
+    return false;
   };
 
   const goToCreateGame = () => {
@@ -85,11 +91,21 @@ export default function ChampionshipView() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f1923] to-[#1a2d1e]">
-      {/* Password modal */}
+      {/* Password modal — admin login */}
       {modal && (
         <PasswordModal
           onSuccess={handlePasswordSuccess}
           onCancel={() => setModal(null)}
+        />
+      )}
+
+      {/* Password modal — delete game confirmation */}
+      {deleteConfirm && (
+        <PasswordModal
+          title="Supprimer la partie ?"
+          description="Cette action est irréversible. Entrez le mot de passe admin pour confirmer."
+          onSuccess={handleDeletePasswordSuccess}
+          onCancel={() => setDeleteConfirm(null)}
         />
       )}
 
@@ -551,36 +567,39 @@ function GameCard({ game, isAdmin, onValidate, onDelete, onSelect }) {
 
   return (
     <div className="bg-[#1e2d3d]/80 border border-white/10 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-3 p-3 cursor-pointer" onClick={onSelect}>
-        <div className={`rounded-lg p-2 flex-shrink-0 ${game.validated ? 'bg-green-600/20' : 'bg-orange-500/20'}`}>
+      <div className="flex items-center gap-3 p-3">
+        <div
+          className={`rounded-lg p-2 flex-shrink-0 cursor-pointer ${game.validated ? 'bg-green-600/20' : 'bg-orange-500/20'}`}
+          onClick={onSelect}
+        >
           {game.validated
             ? <CheckCircle className="w-5 h-5 text-green-400" />
             : <Clock className="w-5 h-5 text-orange-400" />
           }
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={onSelect}>
           <p className="font-semibold text-white text-sm">{date} · {game.organizer}</p>
           <p className="text-xs text-gray-500">
             {game.players.length} joueurs{winner && ` · 🥇 ${winner.name}`}
           </p>
         </div>
-        <ChevronRight className="w-4 h-4 text-gray-600" />
+        <button
+          onClick={onDelete}
+          className="p-2 text-gray-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors flex-shrink-0"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+        <ChevronRight className="w-4 h-4 text-gray-600 flex-shrink-0 cursor-pointer" onClick={onSelect} />
       </div>
 
       {!game.validated && (
-        <div className="border-t border-white/10 p-3 flex gap-2">
+        <div className="border-t border-white/10 p-3">
           <button
             onClick={onValidate}
-            className="flex-1 bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-1.5"
+            className="w-full bg-green-600 hover:bg-green-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-1.5"
           >
             {isAdmin ? <CheckCircle className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
             Valider la partie
-          </button>
-          <button
-            onClick={onDelete}
-            className="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2.5 px-3 rounded-lg transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       )}
